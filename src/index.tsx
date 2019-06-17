@@ -1,23 +1,40 @@
 /**
- * @class ExampleComponent
+ * @class DirectGraph
  */
 
-import * as React from 'react'
+import * as React from "react";
+import { INodeInput, IMatrixNode, Graph } from "./core";
+import { Graph as GraphView, ViewProps } from "./components";
 
-import styles from './styles.css'
+export type Props<T> = {
+    list: INodeInput<T>[];
+    sellSize: number;
+    padding: number;
+};
 
-export type Props = { text: string }
+type GraphViewData<T> = {
+    nodesMap: { [id: string]: IMatrixNode<T> };
+    widthInCells: number;
+    heightInCells: number;
+};
 
-export default class ExampleComponent extends React.Component<Props> {
-  render() {
-    const {
-      text
-    } = this.props
+export default class DirectGraph<T> extends React.Component<
+    Props<T> & ViewProps<T>
+> {
+    getNodesMap = (list: INodeInput<T>[]): GraphViewData<T> => {
+        const graph = new Graph(list);
+        const mtx = graph.traverse();
+        return {
+            nodesMap: mtx.normalize(),
+            widthInCells: mtx.width,
+            heightInCells: mtx.height
+        };
+    };
 
-    return (
-      <div className={styles.test}>
-        Example Component: {text}
-      </div>
-    )
-  }
+    render() {
+        const { list, ...viewProps } = this.props;
+        const dataProps = this.getNodesMap(list);
+
+        return <GraphView {...dataProps} {...viewProps} />;
+    }
 }
