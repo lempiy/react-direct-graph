@@ -4,7 +4,7 @@
     "description": "React component for drawing direct graphs with rectangular (non-curve) edges",
     "author": "lempiy",
     "license": "MIT",
-    "repository": "lempiy/react-direct-graph",
+    "repository": "https://github.com/lempiy/react-direct-graph.git",
     "main": "dist/index.js",
     "module": "dist/index.es.js",
     "jsnext:main": "dist/index.es.js",
@@ -19,7 +19,7 @@
         "start": "rollup -c -w",
         "prepare": "npm run build",
         "predeploy": "cd example && npm install && npm run build",
-        "deploy": "gh-pages -d example/build"
+        "deploy": "gh-pages -d example/build --repo https://github.com/lempiy/react-direct-graph.git"
     },
     "dependencies": {},
     "peerDependencies": {
