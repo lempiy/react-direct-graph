@@ -1,8 +1,8 @@
 {
     "name": "react-direct-graph",
     "version": "1.0.0",
-    "description": "React component for drawing directed graphs with rectangular (non-curve) edge powered with D3.",
-    "author": "lempiy<lempiyada@gmail.com>",
+    "description": "React component for drawing direct graphs with rectangular (non-curve) edges",
+    "author": "lempiy",
     "license": "MIT",
     "repository": "lempiy/react-direct-graph",
     "main": "dist/index.js",
