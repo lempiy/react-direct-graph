@@ -2,7 +2,7 @@
 
 > React component for drawing direct graphs with rectangular (non-curve) edges
 
-[![NPM](https://img.shields.io/npm/v/react-direct-graph.svg)](https://www.npmjs.com/package/react-direct-graph) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![Build Status](https://travis-ci.org/lempiy/react-direct-graph.svg?branch=master)](https://travis-ci.org/lempiy/react-direct-graph) [![NPM](https://img.shields.io/npm/v/react-direct-graph.svg)](https://www.npmjs.com/package/react-direct-graph) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Install
 
