@@ -684,7 +684,6 @@ var Graph = /** @class */ (function () {
     };
     return Graph;
 }());
-//# sourceMappingURL=graph.class.js.map
 
 //# sourceMappingURL=index.js.map
 
@@ -897,6 +896,7 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(React.Component));
+//# sourceMappingURL=element.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);

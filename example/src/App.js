@@ -5,7 +5,7 @@ import React, {
 import DirectGraph from 'react-direct-graph'
 import graph from './graph'
 
-const sellSize = 150
+const sellSize = 200
 const padding = sellSize * 0.25
 
 export default class App extends Component {
@@ -25,7 +25,7 @@ export default class App extends Component {
         if (this.state.inSelect) {
             this.connectNode(event, node, incomes)
         } else {
-            this.deleteNode(event, node, incomes)
+            this.softDeleteNode(event, node, incomes)
         }
     }
 
@@ -55,16 +55,17 @@ export default class App extends Component {
         }
     }
 
-    deleteNode = (event, node, incomes) => { 
+    softDeleteNode = (event, node, incomes) => { 
         const nodeIndex = this.state.graph.findIndex(n => n.id === node.id)
-        incomes.forEach(income => {
+        incomes.forEach((income, index) => {
             const find = n => n.id === income.anchorFrom
             while (income.isAnchor) {
                 income = this.state.graph.find(find)
             }
             const inc = this.state.graph.find(n => n.id === income.id)
             const i = inc.next.findIndex(outcomeId => outcomeId === node.id)
-            inc.next.splice(i, 1)
+            if (!index) inc.next.splice(i, 1, ...node.next)
+            else inc.next.splice(i, 1)
         });
         const newGraph = [
             ...this.state.graph
