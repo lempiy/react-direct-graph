@@ -79,7 +79,6 @@ var AnchorType;
     AnchorType["Join"] = "JOIN";
     AnchorType["Split"] = "SPLIT";
 })(AnchorType || (AnchorType = {}));
-//# sourceMappingURL=node.interface.js.map
 
 /**
  * @class TraverseQueue
@@ -169,7 +168,6 @@ var TraverseQueue = /** @class */ (function () {
     };
     return TraverseQueue;
 }());
-//# sourceMappingURL=traverse-queue.class.js.map
 
 /**
  * @class Matrix
@@ -342,7 +340,6 @@ var Matrix = /** @class */ (function () {
     };
     return Matrix;
 }());
-//# sourceMappingURL=matrix.class.js.map
 
 var MAX_ITERATIONS = 10000;
 /**
@@ -530,11 +527,136 @@ var Graph = /** @class */ (function () {
         return this._insertOrSkipNodeOnMatrix(item, state, false);
     };
     /**
+     * Function to handle split nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    Graph.prototype._handleSplitNode = function (item, state, levelQueue) {
+        var _this = this;
+        var queue = state.queue;
+        var isInserted = this._processOrSkipNodeOnMatrix(item, state);
+        if (isInserted) {
+            var outcomes = this.outcomes(item.id);
+            // first will be on the same y level as parent split
+            var firstOutcomeId = outcomes.shift();
+            if (!firstOutcomeId)
+                throw new Error("Split \"" + item.id + "\" has no outcomes");
+            var first = this.node(firstOutcomeId);
+            queue.add(item.id, levelQueue, {
+                id: first.id,
+                next: first.next,
+                payload: first.payload
+            });
+            // rest will create anchor with shift down by one
+            outcomes.forEach(function (outcomeId) {
+                state.y++;
+                var id = item.id + "-" + outcomeId;
+                _this._insertOrSkipNodeOnMatrix({
+                    id: id,
+                    anchorType: AnchorType.Split,
+                    anchorFrom: item.id,
+                    anchorTo: outcomeId,
+                    isAnchor: true,
+                    renderIncomes: [item.id],
+                    passedIncomes: [item.id],
+                    payload: item.payload,
+                    next: [outcomeId]
+                }, state, true);
+                var out = _this.node(outcomeId);
+                queue.add(id, levelQueue, {
+                    id: out.id,
+                    next: out.next,
+                    payload: out.payload
+                });
+            });
+        }
+        return isInserted;
+    };
+    /**
+     * Function to handle join nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    Graph.prototype._handleJoinNode = function (item, state, levelQueue) {
+        var _this = this;
+        var queue = state.queue, mtx = state.mtx;
+        var isInserted = false;
+        if (this._joinHasUnresolvedIncomes(item)) {
+            queue.push(item);
+        }
+        else {
+            isInserted = this._processOrSkipNodeOnMatrix(item, state);
+            item.renderIncomes = [];
+            if (isInserted) {
+                var incomes = item.passedIncomes;
+                var lowestY_1 = this._getLowestYAmongIncomes(item, mtx);
+                incomes.forEach(function (incomeId) {
+                    var point = mtx.find(function (item) { return item.id === incomeId; });
+                    if (!point)
+                        throw new Error("Income " + incomeId + " not found on matrix");
+                    var y = point[1];
+                    if (lowestY_1 === y) {
+                        item.renderIncomes.push(incomeId);
+                        return;
+                    }
+                    state.y = y;
+                    var id = incomeId + "-" + item.id;
+                    item.renderIncomes.push(id);
+                    _this._insertOrSkipNodeOnMatrix({
+                        id: id,
+                        anchorType: AnchorType.Join,
+                        anchorFrom: incomeId,
+                        anchorTo: item.id,
+                        isAnchor: true,
+                        renderIncomes: [incomeId],
+                        passedIncomes: [incomeId],
+                        payload: item.payload,
+                        next: [item.id]
+                    }, state, false);
+                });
+                queue.add.apply(queue, [item.id,
+                    levelQueue].concat(this.outcomes(item.id).map(function (outcomeId) {
+                    var out = _this.node(outcomeId);
+                    return {
+                        id: out.id,
+                        next: out.next,
+                        payload: out.payload
+                    };
+                })));
+            }
+        }
+        return isInserted;
+    };
+    /**
+     * Function to handle simple nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    Graph.prototype._handleSimpleNode = function (item, state, levelQueue) {
+        var _this = this;
+        var queue = state.queue;
+        var isInserted = this._processOrSkipNodeOnMatrix(item, state);
+        if (isInserted) {
+            queue.add.apply(queue, [item.id,
+                levelQueue].concat(this.outcomes(item.id).map(function (outcomeId) {
+                var out = _this.node(outcomeId);
+                return {
+                    id: out.id,
+                    next: out.next,
+                    payload: out.payload
+                };
+            })));
+        }
+        return isInserted;
+    };
+    /**
      * traverse main method to get coordinates matrix from graph
      * @returns 2D matrix containing all nodes and anchors
      */
     Graph.prototype.traverse = function () {
-        var _this = this;
         var roots = this.roots();
         var state = {
             mtx: new Matrix(),
@@ -542,146 +664,49 @@ var Graph = /** @class */ (function () {
             x: 0,
             y: 0
         };
+        if (!roots.length) {
+            if (this._list.length)
+                throw new Error("No roots in graph");
+            return state.mtx;
+        }
         var _safe = 0;
         var mtx = state.mtx, queue = state.queue;
         queue.add.apply(queue, [null,
             null].concat(roots.map(function (r) { return ({ id: r.id, payload: r.payload, next: r.next }); })));
-        var isInserted = false;
-        var _loop_1 = function () {
+        while (queue.length) {
             var levelQueue = queue.drain();
-            var _loop_2 = function () {
+            while (levelQueue.length) {
                 _safe++;
                 var item = levelQueue.shift();
                 if (!item)
                     throw new Error("Cannot shift from buffer queue");
-                switch (this_1.nodeType(item.id)) {
+                switch (this.nodeType(item.id)) {
                     case NodeType.RootSimple:
+                        // find free column and fallthrough
                         state.y = mtx.getFreeRowForColumn(0);
                     case NodeType.Simple:
-                        isInserted = this_1._processOrSkipNodeOnMatrix(item, state);
-                        if (isInserted) {
-                            queue.add.apply(queue, [item.id,
-                                levelQueue].concat(this_1.outcomes(item.id).map(function (outcomeId) {
-                                var out = _this.node(outcomeId);
-                                return {
-                                    id: out.id,
-                                    next: out.next,
-                                    payload: out.payload
-                                };
-                            })));
-                        }
+                        this._handleSimpleNode(item, state, levelQueue);
                         break;
                     case NodeType.RootSplit:
+                        // find free column and fallthrough
                         state.y = mtx.getFreeRowForColumn(0);
                     case NodeType.Split:
-                        isInserted = this_1._processOrSkipNodeOnMatrix(item, state);
-                        if (isInserted) {
-                            var outcomes = this_1.outcomes(item.id);
-                            // first will be on the same y level as parent split
-                            var firstOutcomeId = outcomes.shift();
-                            if (!firstOutcomeId)
-                                throw new Error("Split \"" + item.id + "\" has no outcomes");
-                            var first = this_1.node(firstOutcomeId);
-                            queue.add(item.id, levelQueue, {
-                                id: first.id,
-                                next: first.next,
-                                payload: first.payload
-                            });
-                            // rest will create anchor with shift down by one
-                            outcomes.forEach(function (outcomeId) {
-                                state.y++;
-                                var id = item.id + "-" + outcomeId;
-                                _this._insertOrSkipNodeOnMatrix({
-                                    id: id,
-                                    anchorType: AnchorType.Split,
-                                    anchorFrom: item.id,
-                                    anchorTo: outcomeId,
-                                    isAnchor: true,
-                                    renderIncomes: [item.id],
-                                    passedIncomes: [item.id],
-                                    payload: item.payload,
-                                    next: [outcomeId]
-                                }, state, true);
-                                var out = _this.node(outcomeId);
-                                queue.add(id, levelQueue, {
-                                    id: out.id,
-                                    next: out.next,
-                                    payload: out.payload
-                                });
-                            });
-                        }
+                        this._handleSplitNode(item, state, levelQueue);
                         break;
                     case NodeType.Join:
-                        if (this_1._joinHasUnresolvedIncomes(item)) {
-                            queue.push(item);
-                        }
-                        else {
-                            isInserted = this_1._processOrSkipNodeOnMatrix(item, state);
-                            item.renderIncomes = [];
-                            if (isInserted) {
-                                var incomes = item.passedIncomes;
-                                var lowestY_1 = this_1._getLowestYAmongIncomes(item, mtx);
-                                incomes.forEach(function (incomeId) {
-                                    var point = mtx.find(function (item) { return item.id === incomeId; });
-                                    if (!point)
-                                        throw new Error("Income " + incomeId + " not found on matrix");
-                                    var y = point[1];
-                                    if (lowestY_1 === y) {
-                                        item.renderIncomes.push(incomeId);
-                                        return;
-                                    }
-                                    state.y = y;
-                                    var id = incomeId + "-" + item.id;
-                                    item.renderIncomes.push(id);
-                                    _this._insertOrSkipNodeOnMatrix({
-                                        id: id,
-                                        anchorType: AnchorType.Join,
-                                        anchorFrom: incomeId,
-                                        anchorTo: item.id,
-                                        isAnchor: true,
-                                        renderIncomes: [incomeId],
-                                        passedIncomes: [incomeId],
-                                        payload: item.payload,
-                                        next: [item.id]
-                                    }, state, false);
-                                });
-                                queue.add.apply(queue, [item.id,
-                                    levelQueue].concat(this_1.outcomes(item.id).map(function (outcomeId) {
-                                    var out = _this.node(outcomeId);
-                                    return {
-                                        id: out.id,
-                                        next: out.next,
-                                        payload: out.payload
-                                    };
-                                })));
-                            }
-                        }
+                        this._handleJoinNode(item, state, levelQueue);
                         break;
                 }
                 if (_safe > MAX_ITERATIONS) {
                     throw new Error("Infinite loop");
-                    return { value: mtx };
                 }
-            };
-            while (levelQueue.length) {
-                var state_2 = _loop_2();
-                if (typeof state_2 === "object")
-                    return state_2;
             }
             state.x++;
-        };
-        var this_1 = this;
-        while (queue.length) {
-            var state_1 = _loop_1();
-            if (typeof state_1 === "object")
-                return state_1.value;
         }
         return mtx;
     };
     return Graph;
 }());
-
-//# sourceMappingURL=index.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -729,7 +754,6 @@ var getCellLeftEntry = function (sellSize, padding, cellX, cellY) {
     var x = cellX * sellSize + padding;
     return [x, y];
 };
-//# sourceMappingURL=index.js.map
 
 var DefaultNodeIcon = /** @class */ (function (_super) {
     __extends(DefaultNodeIcon, _super);
@@ -756,14 +780,12 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
     };
     return DefaultNodeIcon;
 }(Component));
-//# sourceMappingURL=node-icon-default.js.map
 
 var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
     var width = _a.width, height = _a.height, x = _a.x, y = _a.y, props = __rest(_a, ["width", "height", "x", "y"]);
     return (createElement("foreignObject", { x: x, y: y, width: width, height: height, className: "node-icon" },
         createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
-//# sourceMappingURL=with-foreign-object.js.map
 
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
@@ -892,7 +914,6 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(Component));
-//# sourceMappingURL=element.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);
@@ -916,9 +937,6 @@ var Graph$1 = /** @class */ (function (_super) {
     };
     return Graph;
 }(Component));
-//# sourceMappingURL=graph.js.map
-
-//# sourceMappingURL=index.js.map
 
 /**
  * @class DirectGraph
@@ -945,7 +963,6 @@ var DirectGraph = /** @class */ (function (_super) {
     };
     return DirectGraph;
 }(Component));
-//# sourceMappingURL=index.js.map
 
 export default DirectGraph;
 //# sourceMappingURL=index.es.js.map

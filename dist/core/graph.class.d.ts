@@ -94,6 +94,27 @@ export declare class Graph<T> {
      */
     private _processOrSkipNodeOnMatrix;
     /**
+     * Function to handle split nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    private _handleSplitNode;
+    /**
+     * Function to handle join nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    private _handleJoinNode;
+    /**
+     * Function to handle simple nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    private _handleSimpleNode;
+    /**
      * traverse main method to get coordinates matrix from graph
      * @returns 2D matrix containing all nodes and anchors
      */

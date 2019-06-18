@@ -217,17 +217,173 @@ export class Graph<T> {
         return this._insertOrSkipNodeOnMatrix(item, state, false);
     }
     /**
+     * Function to handle split nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    private _handleSplitNode(
+        item: INodeOutput<T>,
+        state: State<T>,
+        levelQueue: TraverseQueue<T>
+    ): boolean {
+        const { queue } = state;
+        let isInserted = this._processOrSkipNodeOnMatrix(item, state);
+        if (isInserted) {
+            const outcomes = this.outcomes(item.id);
+            // first will be on the same y level as parent split
+            const firstOutcomeId = outcomes.shift();
+            if (!firstOutcomeId)
+                throw new Error(`Split "${item.id}" has no outcomes`);
+            const first = this.node(firstOutcomeId);
+            queue.add(item.id, levelQueue, {
+                id: first.id,
+                next: first.next,
+                payload: first.payload
+            });
+            // rest will create anchor with shift down by one
+            outcomes.forEach(outcomeId => {
+                state.y++;
+                const id = `${item.id}-${outcomeId}`;
+
+                this._insertOrSkipNodeOnMatrix(
+                    {
+                        id: id,
+                        anchorType: AnchorType.Split,
+                        anchorFrom: item.id,
+                        anchorTo: outcomeId,
+                        isAnchor: true,
+                        renderIncomes: [item.id],
+                        passedIncomes: [item.id],
+                        payload: item.payload,
+                        next: [outcomeId]
+                    },
+                    state,
+                    true
+                );
+                const out = this.node(outcomeId);
+                queue.add(id, levelQueue, {
+                    id: out.id,
+                    next: out.next,
+                    payload: out.payload
+                });
+            });
+        }
+        return isInserted;
+    }
+    /**
+     * Function to handle join nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    private _handleJoinNode(
+        item: INodeOutput<T>,
+        state: State<T>,
+        levelQueue: TraverseQueue<T>
+    ): boolean {
+        const { queue, mtx } = state;
+        let isInserted = false;
+        if (this._joinHasUnresolvedIncomes(item)) {
+            queue.push(item);
+        } else {
+            isInserted = this._processOrSkipNodeOnMatrix(item, state);
+            item.renderIncomes = [];
+            if (isInserted) {
+                const incomes = item.passedIncomes;
+                const lowestY = this._getLowestYAmongIncomes(item, mtx);
+                incomes.forEach(incomeId => {
+                    const point = mtx.find(item => item.id === incomeId);
+                    if (!point)
+                        throw new Error(
+                            `Income ${incomeId} not found on matrix`
+                        );
+                    const [, y] = point;
+                    if (lowestY === y) {
+                        item.renderIncomes.push(incomeId);
+                        return;
+                    }
+                    state.y = y;
+                    const id = `${incomeId}-${item.id}`;
+                    item.renderIncomes.push(id);
+                    this._insertOrSkipNodeOnMatrix(
+                        {
+                            id: id,
+                            anchorType: AnchorType.Join,
+                            anchorFrom: incomeId,
+                            anchorTo: item.id,
+                            isAnchor: true,
+                            renderIncomes: [incomeId],
+                            passedIncomes: [incomeId],
+                            payload: item.payload,
+                            next: [item.id]
+                        },
+                        state,
+                        false
+                    );
+                });
+                queue.add(
+                    item.id,
+                    levelQueue,
+                    ...this.outcomes(item.id).map(outcomeId => {
+                        const out = this.node(outcomeId);
+                        return {
+                            id: out.id,
+                            next: out.next,
+                            payload: out.payload
+                        };
+                    })
+                );
+            }
+        }
+        return isInserted;
+    }
+    /**
+     * Function to handle simple nodes
+     * @param item item to handle
+     * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
+     */
+    private _handleSimpleNode(
+        item: INodeOutput<T>,
+        state: State<T>,
+        levelQueue: TraverseQueue<T>
+    ): boolean {
+        const { queue } = state;
+        let isInserted = this._processOrSkipNodeOnMatrix(item, state);
+        if (isInserted) {
+            queue.add(
+                item.id,
+                levelQueue,
+                ...this.outcomes(item.id).map(outcomeId => {
+                    const out = this.node(outcomeId);
+                    return {
+                        id: out.id,
+                        next: out.next,
+                        payload: out.payload
+                    };
+                })
+            );
+        }
+        return isInserted;
+    }
+    /**
      * traverse main method to get coordinates matrix from graph
      * @returns 2D matrix containing all nodes and anchors
      */
-    traverse() {
+    traverse(): Matrix<T> {
         const roots = this.roots();
+
         const state: State<T> = {
             mtx: new Matrix<T>(),
             queue: new TraverseQueue(),
             x: 0,
             y: 0
         };
+        if (!roots.length) {
+            if (this._list.length) throw new Error(`No roots in graph`);
+            return state.mtx;
+        }
         let _safe = 0;
         const { mtx, queue } = state;
         queue.add(
@@ -235,7 +391,6 @@ export class Graph<T> {
             null,
             ...roots.map(r => ({ id: r.id, payload: r.payload, next: r.next }))
         );
-        let isInserted = false;
         while (queue.length) {
             const levelQueue = queue.drain();
             while (levelQueue.length) {
@@ -244,143 +399,23 @@ export class Graph<T> {
                 if (!item) throw new Error("Cannot shift from buffer queue");
                 switch (this.nodeType(item.id)) {
                     case NodeType.RootSimple:
+                        // find free column and fallthrough
                         state.y = mtx.getFreeRowForColumn(0);
                     case NodeType.Simple:
-                        isInserted = this._processOrSkipNodeOnMatrix(
-                            item,
-                            state
-                        );
-                        if (isInserted) {
-                            queue.add(
-                                item.id,
-                                levelQueue,
-                                ...this.outcomes(item.id).map(outcomeId => {
-                                    const out = this.node(outcomeId);
-                                    return {
-                                        id: out.id,
-                                        next: out.next,
-                                        payload: out.payload
-                                    };
-                                })
-                            );
-                        }
+                        this._handleSimpleNode(item, state, levelQueue);
                         break;
                     case NodeType.RootSplit:
+                        // find free column and fallthrough
                         state.y = mtx.getFreeRowForColumn(0);
                     case NodeType.Split:
-                        isInserted = this._processOrSkipNodeOnMatrix(
-                            item,
-                            state
-                        );
-                        if (isInserted) {
-                            const outcomes = this.outcomes(item.id);
-                            // first will be on the same y level as parent split
-                            const firstOutcomeId = outcomes.shift();
-                            if (!firstOutcomeId)
-                                throw new Error(
-                                    `Split "${item.id}" has no outcomes`
-                                );
-                            const first = this.node(firstOutcomeId);
-                            queue.add(item.id, levelQueue, {
-                                id: first.id,
-                                next: first.next,
-                                payload: first.payload
-                            });
-                            // rest will create anchor with shift down by one
-                            outcomes.forEach(outcomeId => {
-                                state.y++;
-                                const id = `${item.id}-${outcomeId}`;
-
-                                this._insertOrSkipNodeOnMatrix(
-                                    {
-                                        id: id,
-                                        anchorType: AnchorType.Split,
-                                        anchorFrom: item.id,
-                                        anchorTo: outcomeId,
-                                        isAnchor: true,
-                                        renderIncomes: [item.id],
-                                        passedIncomes: [item.id],
-                                        payload: item.payload,
-                                        next: [outcomeId]
-                                    },
-                                    state,
-                                    true
-                                );
-                                const out = this.node(outcomeId);
-                                queue.add(id, levelQueue, {
-                                    id: out.id,
-                                    next: out.next,
-                                    payload: out.payload
-                                });
-                            });
-                        }
+                        this._handleSplitNode(item, state, levelQueue);
                         break;
                     case NodeType.Join:
-                        if (this._joinHasUnresolvedIncomes(item)) {
-                            queue.push(item);
-                        } else {
-                            isInserted = this._processOrSkipNodeOnMatrix(
-                                item,
-                                state
-                            );
-                            item.renderIncomes = [];
-                            if (isInserted) {
-                                const incomes = item.passedIncomes;
-                                const lowestY = this._getLowestYAmongIncomes(
-                                    item,
-                                    mtx
-                                );
-                                incomes.forEach(incomeId => {
-                                    const point = mtx.find(
-                                        item => item.id === incomeId
-                                    );
-                                    if (!point)
-                                        throw new Error(
-                                            `Income ${incomeId} not found on matrix`
-                                        );
-                                    const [, y] = point;
-                                    if (lowestY === y) {
-                                        item.renderIncomes.push(incomeId);
-                                        return;
-                                    }
-                                    state.y = y;
-                                    const id = `${incomeId}-${item.id}`;
-                                    item.renderIncomes.push(id);
-                                    this._insertOrSkipNodeOnMatrix(
-                                        {
-                                            id: id,
-                                            anchorType: AnchorType.Join,
-                                            anchorFrom: incomeId,
-                                            anchorTo: item.id,
-                                            isAnchor: true,
-                                            renderIncomes: [incomeId],
-                                            passedIncomes: [incomeId],
-                                            payload: item.payload,
-                                            next: [item.id]
-                                        },
-                                        state,
-                                        false
-                                    );
-                                });
-                                queue.add(
-                                    item.id,
-                                    levelQueue,
-                                    ...this.outcomes(item.id).map(outcomeId => {
-                                        const out = this.node(outcomeId);
-                                        return {
-                                            id: out.id,
-                                            next: out.next,
-                                            payload: out.payload
-                                        };
-                                    })
-                                );
-                            }
-                        }
+                        this._handleJoinNode(item, state, levelQueue);
                         break;
                 }
                 if (_safe > MAX_ITERATIONS) {
                     throw new Error(`Infinite loop`);
-                    return mtx;
                 }
             }
             state.x++;
