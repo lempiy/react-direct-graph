@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/lempiy/react-direct-graph.svg?branch=master)](https://travis-ci.org/lempiy/react-direct-graph) [![NPM](https://img.shields.io/npm/v/react-direct-graph.svg)](https://www.npmjs.com/package/react-direct-graph) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![Build Status](https://travis-ci.org/lempiy/react-direct-graph.svg?branch=master)](https://travis-ci.org/lempiy/react-direct-graph) [![NPM](https://img.shields.io/npm/v/react-direct-graph.svg)](https://www.npmjs.com/package/react-direct-graph) [![Maintainability](https://api.codeclimate.com/v1/badges/d333ef5cfaaa6a432aca/maintainability)](https://codeclimate.com/github/lempiy/react-direct-graph/maintainability) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 # React Direct Graph
 
