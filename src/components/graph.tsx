@@ -4,7 +4,7 @@ import { GraphElement, ViewProps } from "./element";
 
 export type Props<T> = {
     nodesMap: { [id: string]: IMatrixNode<T> };
-    sellSize: number;
+    cellSize: number;
     padding: number;
     widthInCells: number;
     heightInCells: number;
@@ -27,7 +27,7 @@ export class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
     render() {
         const {
             nodesMap,
-            sellSize,
+            cellSize,
             padding,
             widthInCells,
             heightInCells,
@@ -38,13 +38,13 @@ export class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
         return (
             <svg
                 version="1"
-                width={widthInCells * sellSize}
-                height={heightInCells * sellSize}
+                width={widthInCells * cellSize}
+                height={heightInCells * cellSize}
             >
                 {elements.map(props => (
                     <GraphElement
                         key={props.node.id}
-                        sellSize={sellSize}
+                        cellSize={cellSize}
                         padding={padding}
                         {...props}
                         {...restProps}

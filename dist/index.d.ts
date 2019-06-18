@@ -6,7 +6,7 @@ import { INodeInput, IMatrixNode } from "./core";
 import { ViewProps } from "./components";
 export declare type Props<T> = {
     list: INodeInput<T>[];
-    sellSize: number;
+    cellSize: number;
     padding: number;
 };
 declare type GraphViewData<T> = {

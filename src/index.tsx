@@ -8,7 +8,7 @@ import { Graph as GraphView, ViewProps } from "./components";
 
 export type Props<T> = {
     list: INodeInput<T>[];
-    sellSize: number;
+    cellSize: number;
     padding: number;
 };
 

@@ -10,7 +10,7 @@ export declare type ViewProps<T> = {
     onEdgeMouseLeave?: GraphEventFunc<T>;
     onNodeClick?: GraphEventFunc<T>;
     onEdgeClick?: GraphEventFunc<T>;
-    sellSize: number;
+    cellSize: number;
     padding: number;
 };
 export declare type DataProps<T> = {
@@ -18,18 +18,18 @@ export declare type DataProps<T> = {
     incomes: IMatrixNode<T>[];
 };
 export declare class GraphElement<T> extends React.Component<DataProps<T> & ViewProps<T>> {
-    getLineToIncome(sellSize: number, padding: number, node: IMatrixNode<T>, income: IMatrixNode<T>): {
+    getLineToIncome(cellSize: number, padding: number, node: IMatrixNode<T>, income: IMatrixNode<T>): {
         node: IMatrixNode<T>;
         income: IMatrixNode<T>;
         line: (number | undefined)[];
     };
-    getLines(sellSize: number, padding: number, node: IMatrixNode<T>, incomes: IMatrixNode<T>[]): {
+    getLines(cellSize: number, padding: number, node: IMatrixNode<T>, incomes: IMatrixNode<T>[]): {
         node: IMatrixNode<T>;
         income: IMatrixNode<T>;
         line: (number | undefined)[];
     }[];
-    getCoords(sellSize: number, padding: number, node: IMatrixNode<T>): number[];
-    getSize(sellSize: number, padding: number): number;
+    getCoords(cellSize: number, padding: number, node: IMatrixNode<T>): number[];
+    getSize(cellSize: number, padding: number): number;
     wrapEventHandler: (cb: GraphEventFunc<T>, node: IMatrixNode<T>, incomes: IMatrixNode<T>[]) => (e: React.MouseEvent<Element, MouseEvent>) => void;
     render(): JSX.Element;
 }

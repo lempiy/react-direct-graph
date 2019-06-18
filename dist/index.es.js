@@ -729,29 +729,29 @@ var getVectorDirection = function (x1, y1, x2, y2) {
             return VectorDirection.Top;
     }
 };
-var getCellCenter = function (sellSize, cellX, cellY) {
-    var x = cellX * sellSize + sellSize * 0.5;
-    var y = cellY * sellSize + sellSize * 0.5;
+var getCellCenter = function (cellSize, cellX, cellY) {
+    var x = cellX * cellSize + cellSize * 0.5;
+    var y = cellY * cellSize + cellSize * 0.5;
     return [x, y];
 };
-var getCellTopEntry = function (sellSize, padding, cellX, cellY) {
-    var x = getCellCenter(sellSize, cellX, cellY)[0];
-    var y = cellY * sellSize + padding;
+var getCellTopEntry = function (cellSize, padding, cellX, cellY) {
+    var x = getCellCenter(cellSize, cellX, cellY)[0];
+    var y = cellY * cellSize + padding;
     return [x, y];
 };
-var getCellBottomEntry = function (sellSize, padding, cellX, cellY) {
-    var x = getCellCenter(sellSize, cellX, cellY)[0];
-    var y = cellY * sellSize + (sellSize - padding);
+var getCellBottomEntry = function (cellSize, padding, cellX, cellY) {
+    var x = getCellCenter(cellSize, cellX, cellY)[0];
+    var y = cellY * cellSize + (cellSize - padding);
     return [x, y];
 };
-var getCellRightEntry = function (sellSize, padding, cellX, cellY) {
-    var _a = getCellCenter(sellSize, cellX, cellY), y = _a[1];
-    var x = cellX * sellSize + (sellSize - padding);
+var getCellRightEntry = function (cellSize, padding, cellX, cellY) {
+    var _a = getCellCenter(cellSize, cellX, cellY), y = _a[1];
+    var x = cellX * cellSize + (cellSize - padding);
     return [x, y];
 };
-var getCellLeftEntry = function (sellSize, padding, cellX, cellY) {
-    var _a = getCellCenter(sellSize, cellX, cellY), y = _a[1];
-    var x = cellX * sellSize + padding;
+var getCellLeftEntry = function (cellSize, padding, cellX, cellY) {
+    var _a = getCellCenter(cellSize, cellX, cellY), y = _a[1];
+    var x = cellX * cellSize + padding;
     return [x, y];
 };
 
@@ -796,65 +796,65 @@ var GraphElement = /** @class */ (function (_super) {
         };
         return _this;
     }
-    GraphElement.prototype.getLineToIncome = function (sellSize, padding, node, income) {
+    GraphElement.prototype.getLineToIncome = function (cellSize, padding, node, income) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
         var direction = getVectorDirection(node.x, node.y, income.x, income.y);
         var x1, y1, x2, y2;
         switch (direction) {
             case VectorDirection.Top:
                 if (node.isAnchor) {
-                    _a = getCellCenter(sellSize, node.x, node.y), x1 = _a[0], y1 = _a[1];
+                    _a = getCellCenter(cellSize, node.x, node.y), x1 = _a[0], y1 = _a[1];
                 }
                 else {
-                    _b = getCellTopEntry(sellSize, padding, node.x, node.y), x1 = _b[0], y1 = _b[1];
+                    _b = getCellTopEntry(cellSize, padding, node.x, node.y), x1 = _b[0], y1 = _b[1];
                 }
                 if (income.isAnchor) {
-                    _c = getCellCenter(sellSize, income.x, income.y), x2 = _c[0], y2 = _c[1];
+                    _c = getCellCenter(cellSize, income.x, income.y), x2 = _c[0], y2 = _c[1];
                 }
                 else {
-                    _d = getCellBottomEntry(sellSize, padding, income.x, income.y), x2 = _d[0], y2 = _d[1];
+                    _d = getCellBottomEntry(cellSize, padding, income.x, income.y), x2 = _d[0], y2 = _d[1];
                 }
                 break;
             case VectorDirection.Bottom:
                 if (node.isAnchor) {
-                    _e = getCellCenter(sellSize, node.x, node.y), x1 = _e[0], y1 = _e[1];
+                    _e = getCellCenter(cellSize, node.x, node.y), x1 = _e[0], y1 = _e[1];
                 }
                 else {
-                    _f = getCellBottomEntry(sellSize, padding, node.x, node.y), x1 = _f[0], y1 = _f[1];
+                    _f = getCellBottomEntry(cellSize, padding, node.x, node.y), x1 = _f[0], y1 = _f[1];
                 }
                 if (income.isAnchor) {
-                    _g = getCellCenter(sellSize, income.x, income.y), x2 = _g[0], y2 = _g[1];
+                    _g = getCellCenter(cellSize, income.x, income.y), x2 = _g[0], y2 = _g[1];
                 }
                 else {
-                    _h = getCellTopEntry(sellSize, padding, income.x, income.y), x2 = _h[0], y2 = _h[1];
+                    _h = getCellTopEntry(cellSize, padding, income.x, income.y), x2 = _h[0], y2 = _h[1];
                 }
                 break;
             case VectorDirection.Right:
                 if (node.isAnchor) {
-                    _j = getCellCenter(sellSize, node.x, node.y), x1 = _j[0], y1 = _j[1];
+                    _j = getCellCenter(cellSize, node.x, node.y), x1 = _j[0], y1 = _j[1];
                 }
                 else {
-                    _k = getCellRightEntry(sellSize, padding, node.x, node.y), x1 = _k[0], y1 = _k[1];
+                    _k = getCellRightEntry(cellSize, padding, node.x, node.y), x1 = _k[0], y1 = _k[1];
                 }
                 if (income.isAnchor) {
-                    _l = getCellCenter(sellSize, income.x, income.y), x2 = _l[0], y2 = _l[1];
+                    _l = getCellCenter(cellSize, income.x, income.y), x2 = _l[0], y2 = _l[1];
                 }
                 else {
-                    _m = getCellLeftEntry(sellSize, padding, income.x, income.y), x2 = _m[0], y2 = _m[1];
+                    _m = getCellLeftEntry(cellSize, padding, income.x, income.y), x2 = _m[0], y2 = _m[1];
                 }
                 break;
             case VectorDirection.Left:
                 if (node.isAnchor) {
-                    _o = getCellCenter(sellSize, node.x, node.y), x1 = _o[0], y1 = _o[1];
+                    _o = getCellCenter(cellSize, node.x, node.y), x1 = _o[0], y1 = _o[1];
                 }
                 else {
-                    _p = getCellLeftEntry(sellSize, padding, node.x, node.y), x1 = _p[0], y1 = _p[1];
+                    _p = getCellLeftEntry(cellSize, padding, node.x, node.y), x1 = _p[0], y1 = _p[1];
                 }
                 if (income.isAnchor) {
-                    _q = getCellCenter(sellSize, income.x, income.y), x2 = _q[0], y2 = _q[1];
+                    _q = getCellCenter(cellSize, income.x, income.y), x2 = _q[0], y2 = _q[1];
                 }
                 else {
-                    _r = getCellRightEntry(sellSize, padding, income.x, income.y), x2 = _r[0], y2 = _r[1];
+                    _r = getCellRightEntry(cellSize, padding, income.x, income.y), x2 = _r[0], y2 = _r[1];
                 }
                 break;
         }
@@ -864,28 +864,28 @@ var GraphElement = /** @class */ (function (_super) {
             line: [x1, y1, x2, y2]
         };
     };
-    GraphElement.prototype.getLines = function (sellSize, padding, node, incomes) {
+    GraphElement.prototype.getLines = function (cellSize, padding, node, incomes) {
         var _this = this;
         return node.isAnchor
             ? incomes.map(function (income) {
-                return _this.getLineToIncome(sellSize, padding, income, node);
+                return _this.getLineToIncome(cellSize, padding, income, node);
             })
             : incomes.map(function (income) {
-                return _this.getLineToIncome(sellSize, padding, node, income);
+                return _this.getLineToIncome(cellSize, padding, node, income);
             });
     };
-    GraphElement.prototype.getCoords = function (sellSize, padding, node) {
-        return [node.x * sellSize + padding, node.y * sellSize + padding];
+    GraphElement.prototype.getCoords = function (cellSize, padding, node) {
+        return [node.x * cellSize + padding, node.y * cellSize + padding];
     };
-    GraphElement.prototype.getSize = function (sellSize, padding) {
-        return sellSize - padding * 2;
+    GraphElement.prototype.getSize = function (cellSize, padding) {
+        return cellSize - padding * 2;
     };
     GraphElement.prototype.render = function () {
         var _this = this;
-        var _a = this.props, node = _a.node, incomes = _a.incomes, sellSize = _a.sellSize, padding = _a.padding, onNodeClick = _a.onNodeClick, onNodeMouseEnter = _a.onNodeMouseEnter, onNodeMouseLeave = _a.onNodeMouseLeave, onEdgeClick = _a.onEdgeClick, onEdgeMouseEnter = _a.onEdgeMouseEnter, onEdgeMouseLeave = _a.onEdgeMouseLeave;
-        var _b = this.getCoords(sellSize, padding, node), x = _b[0], y = _b[1];
-        var lines = this.getLines(sellSize, padding, node, incomes);
-        var size = this.getSize(sellSize, padding);
+        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding, onNodeClick = _a.onNodeClick, onNodeMouseEnter = _a.onNodeMouseEnter, onNodeMouseLeave = _a.onNodeMouseLeave, onEdgeClick = _a.onEdgeClick, onEdgeMouseEnter = _a.onEdgeMouseEnter, onEdgeMouseLeave = _a.onEdgeMouseLeave;
+        var _b = this.getCoords(cellSize, padding, node), x = _b[0], y = _b[1];
+        var lines = this.getLines(cellSize, padding, node, incomes);
+        var size = this.getSize(cellSize, padding);
         var NodeIcon = withForeignObject(this.props.component ? this.props.component : DefaultNodeIcon);
         return (createElement("g", { className: "node-group", style: {
                 strokeWidth: 2,
@@ -931,9 +931,9 @@ var Graph$1 = /** @class */ (function (_super) {
         return _this;
     }
     Graph.prototype.render = function () {
-        var _a = this.props, nodesMap = _a.nodesMap, sellSize = _a.sellSize, padding = _a.padding, widthInCells = _a.widthInCells, heightInCells = _a.heightInCells, restProps = __rest(_a, ["nodesMap", "sellSize", "padding", "widthInCells", "heightInCells"]);
+        var _a = this.props, nodesMap = _a.nodesMap, cellSize = _a.cellSize, padding = _a.padding, widthInCells = _a.widthInCells, heightInCells = _a.heightInCells, restProps = __rest(_a, ["nodesMap", "cellSize", "padding", "widthInCells", "heightInCells"]);
         var elements = this.getNodeElementInputs(nodesMap);
-        return (createElement("svg", { version: "1", width: widthInCells * sellSize, height: heightInCells * sellSize }, elements.map(function (props) { return (createElement(GraphElement, __assign({ key: props.node.id, sellSize: sellSize, padding: padding }, props, restProps))); })));
+        return (createElement("svg", { version: "1", width: widthInCells * cellSize, height: heightInCells * cellSize }, elements.map(function (props) { return (createElement(GraphElement, __assign({ key: props.node.id, cellSize: cellSize, padding: padding }, props, restProps))); })));
     };
     return Graph;
 }(Component));

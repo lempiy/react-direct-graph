@@ -5,7 +5,7 @@ export declare type Props<T> = {
     nodesMap: {
         [id: string]: IMatrixNode<T>;
     };
-    sellSize: number;
+    cellSize: number;
     padding: number;
     widthInCells: number;
     heightInCells: number;

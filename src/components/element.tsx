@@ -27,7 +27,7 @@ export type ViewProps<T> = {
     onEdgeMouseLeave?: GraphEventFunc<T>;
     onNodeClick?: GraphEventFunc<T>;
     onEdgeClick?: GraphEventFunc<T>;
-    sellSize: number;
+    cellSize: number;
     padding: number;
 };
 
@@ -40,7 +40,7 @@ export class GraphElement<T> extends React.Component<
     DataProps<T> & ViewProps<T>
 > {
     getLineToIncome(
-        sellSize: number,
+        cellSize: number,
         padding: number,
         node: IMatrixNode<T>,
         income: IMatrixNode<T>
@@ -56,20 +56,20 @@ export class GraphElement<T> extends React.Component<
         switch (direction) {
             case VectorDirection.Top:
                 if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(sellSize, node.x, node.y);
+                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
                 } else {
                     [x1, y1] = getCellTopEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         node.x,
                         node.y
                     );
                 }
                 if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(sellSize, income.x, income.y);
+                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
                 } else {
                     [x2, y2] = getCellBottomEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         income.x,
                         income.y
@@ -78,20 +78,20 @@ export class GraphElement<T> extends React.Component<
                 break;
             case VectorDirection.Bottom:
                 if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(sellSize, node.x, node.y);
+                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
                 } else {
                     [x1, y1] = getCellBottomEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         node.x,
                         node.y
                     );
                 }
                 if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(sellSize, income.x, income.y);
+                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
                 } else {
                     [x2, y2] = getCellTopEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         income.x,
                         income.y
@@ -100,20 +100,20 @@ export class GraphElement<T> extends React.Component<
                 break;
             case VectorDirection.Right:
                 if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(sellSize, node.x, node.y);
+                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
                 } else {
                     [x1, y1] = getCellRightEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         node.x,
                         node.y
                     );
                 }
                 if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(sellSize, income.x, income.y);
+                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
                 } else {
                     [x2, y2] = getCellLeftEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         income.x,
                         income.y
@@ -122,20 +122,20 @@ export class GraphElement<T> extends React.Component<
                 break;
             case VectorDirection.Left:
                 if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(sellSize, node.x, node.y);
+                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
                 } else {
                     [x1, y1] = getCellLeftEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         node.x,
                         node.y
                     );
                 }
                 if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(sellSize, income.x, income.y);
+                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
                 } else {
                     [x2, y2] = getCellRightEntry(
-                        sellSize,
+                        cellSize,
                         padding,
                         income.x,
                         income.y
@@ -151,30 +151,30 @@ export class GraphElement<T> extends React.Component<
     }
 
     getLines(
-        sellSize: number,
+        cellSize: number,
         padding: number,
         node: IMatrixNode<T>,
         incomes: IMatrixNode<T>[]
     ) {
         return node.isAnchor
             ? incomes.map(income =>
-                  this.getLineToIncome(sellSize, padding, income, node)
+                  this.getLineToIncome(cellSize, padding, income, node)
               )
             : incomes.map(income =>
-                  this.getLineToIncome(sellSize, padding, node, income)
+                  this.getLineToIncome(cellSize, padding, node, income)
               );
     }
 
     getCoords(
-        sellSize: number,
+        cellSize: number,
         padding: number,
         node: IMatrixNode<T>
     ): number[] {
-        return [node.x * sellSize + padding, node.y * sellSize + padding];
+        return [node.x * cellSize + padding, node.y * cellSize + padding];
     }
 
-    getSize(sellSize: number, padding: number): number {
-        return sellSize - padding * 2;
+    getSize(cellSize: number, padding: number): number {
+        return cellSize - padding * 2;
     }
 
     wrapEventHandler = (
@@ -189,7 +189,7 @@ export class GraphElement<T> extends React.Component<
         const {
             node,
             incomes,
-            sellSize,
+            cellSize,
             padding,
             onNodeClick,
             onNodeMouseEnter,
@@ -198,9 +198,9 @@ export class GraphElement<T> extends React.Component<
             onEdgeMouseEnter,
             onEdgeMouseLeave
         } = this.props;
-        const [x, y] = this.getCoords(sellSize, padding, node);
-        const lines = this.getLines(sellSize, padding, node, incomes);
-        const size = this.getSize(sellSize, padding);
+        const [x, y] = this.getCoords(cellSize, padding, node);
+        const lines = this.getLines(cellSize, padding, node, incomes);
+        const size = this.getSize(cellSize, padding);
         const NodeIcon = withForeignObject<GraphNodeIconComponentProps<T>>(
             this.props.component ? this.props.component : DefaultNodeIcon
         );
@@ -251,7 +251,7 @@ export class GraphElement<T> extends React.Component<
                         />
                     </g>
                 )}
-                {lines.map((l) => (
+                {lines.map(l => (
                     <line
                         {...{
                             onClick:

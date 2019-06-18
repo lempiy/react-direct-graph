@@ -1,8 +1,8 @@
+[![Build Status](https://travis-ci.org/lempiy/react-direct-graph.svg?branch=master)](https://travis-ci.org/lempiy/react-direct-graph) [![NPM](https://img.shields.io/npm/v/react-direct-graph.svg)](https://www.npmjs.com/package/react-direct-graph) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+
 # React Direct Graph
 
-> React component for drawing direct graphs with rectangular (non-curve) edges
-
-[![Build Status](https://travis-ci.org/lempiy/react-direct-graph.svg?branch=master)](https://travis-ci.org/lempiy/react-direct-graph) [![NPM](https://img.shields.io/npm/v/react-direct-graph.svg)](https://www.npmjs.com/package/react-direct-graph) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+> React component for drawing direct graphs with rectangular (non-curve) edge
 
 ## Install
 
@@ -17,8 +17,8 @@ import * as React from "react";
 
 import DirectGraph from "react-direct-graph";
 
-const sellSize = 150;
-const padding = sellSize * 0.25;
+const cellSize = 150;
+const padding = cellSize * 0.25;
 
 const graph = [
     {
@@ -75,7 +75,7 @@ const graph = [
 class Example extends React.Component {
     render() {
         return (
-            <DirectGraph list={graph} sellSize={sellSize} padding={padding} />
+            <DirectGraph list={graph} cellSize={cellSize} padding={padding} />
         );
     }
 }
