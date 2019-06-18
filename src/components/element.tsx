@@ -251,7 +251,7 @@ export class GraphElement<T> extends React.Component<
                         />
                     </g>
                 )}
-                {lines.map((l, i) => (
+                {lines.map((l) => (
                     <line
                         {...{
                             onClick:
@@ -274,7 +274,7 @@ export class GraphElement<T> extends React.Component<
                                     [l.income]
                                 )
                         }}
-                        key={`line-${node.id}-${i}`}
+                        key={`line-${node.id}-${l.income.id}`}
                         className="node-line"
                         x1={l.line[0]}
                         y1={l.line[1]}
