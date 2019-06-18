@@ -79,6 +79,7 @@ var AnchorType;
     AnchorType["Join"] = "JOIN";
     AnchorType["Split"] = "SPLIT";
 })(AnchorType || (AnchorType = {}));
+//# sourceMappingURL=node.interface.js.map
 
 /**
  * @class TraverseQueue
@@ -168,6 +169,7 @@ var TraverseQueue = /** @class */ (function () {
     };
     return TraverseQueue;
 }());
+//# sourceMappingURL=traverse-queue.class.js.map
 
 /**
  * @class Matrix
@@ -340,6 +342,7 @@ var Matrix = /** @class */ (function () {
     };
     return Matrix;
 }());
+//# sourceMappingURL=matrix.class.js.map
 
 var MAX_ITERATIONS = 10000;
 /**
@@ -678,6 +681,8 @@ var Graph = /** @class */ (function () {
     return Graph;
 }());
 
+//# sourceMappingURL=index.js.map
+
 var VectorDirection;
 (function (VectorDirection) {
     VectorDirection["Top"] = "top";
@@ -724,6 +729,7 @@ var getCellLeftEntry = function (sellSize, padding, cellX, cellY) {
     var x = cellX * sellSize + padding;
     return [x, y];
 };
+//# sourceMappingURL=index.js.map
 
 var DefaultNodeIcon = /** @class */ (function (_super) {
     __extends(DefaultNodeIcon, _super);
@@ -750,12 +756,14 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
     };
     return DefaultNodeIcon;
 }(Component));
+//# sourceMappingURL=node-icon-default.js.map
 
 var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
     var width = _a.width, height = _a.height, x = _a.x, y = _a.y, props = __rest(_a, ["width", "height", "x", "y"]);
     return (createElement("foreignObject", { x: x, y: y, width: width, height: height, className: "node-icon" },
         createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
+//# sourceMappingURL=with-foreign-object.js.map
 
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
@@ -871,7 +879,7 @@ var GraphElement = /** @class */ (function (_super) {
                     this.wrapEventHandler(onNodeMouseLeave, node, incomes)
             }),
                 createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }))),
-            lines.map(function (l, i) { return (createElement("line", __assign({}, {
+            lines.map(function (l) { return (createElement("line", __assign({}, {
                 onClick: onEdgeClick &&
                     _this.wrapEventHandler(onEdgeClick, l.node, [
                         l.income
@@ -880,10 +888,11 @@ var GraphElement = /** @class */ (function (_super) {
                     _this.wrapEventHandler(onEdgeMouseEnter, l.node, [l.income]),
                 onMouseLeave: onEdgeMouseLeave &&
                     _this.wrapEventHandler(onEdgeMouseLeave, l.node, [l.income])
-            }, { key: "line-" + node.id + "-" + i, className: "node-line", x1: l.line[0], y1: l.line[1], x2: l.line[2], y2: l.line[3] }))); })));
+            }, { key: "line-" + node.id + "-" + l.income.id, className: "node-line", x1: l.line[0], y1: l.line[1], x2: l.line[2], y2: l.line[3] }))); })));
     };
     return GraphElement;
 }(Component));
+//# sourceMappingURL=element.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);
@@ -907,6 +916,9 @@ var Graph$1 = /** @class */ (function (_super) {
     };
     return Graph;
 }(Component));
+//# sourceMappingURL=graph.js.map
+
+//# sourceMappingURL=index.js.map
 
 /**
  * @class DirectGraph
@@ -933,6 +945,7 @@ var DirectGraph = /** @class */ (function (_super) {
     };
     return DirectGraph;
 }(Component));
+//# sourceMappingURL=index.js.map
 
 export default DirectGraph;
 //# sourceMappingURL=index.es.js.map
