@@ -21,15 +21,17 @@ export declare class GraphElement<T> extends React.Component<DataProps<T> & View
     getLineToIncome(cellSize: number, padding: number, node: IMatrixNode<T>, income: IMatrixNode<T>): {
         node: IMatrixNode<T>;
         income: IMatrixNode<T>;
-        line: (number | undefined)[];
+        line: number[];
     };
     getLines(cellSize: number, padding: number, node: IMatrixNode<T>, incomes: IMatrixNode<T>[]): {
         node: IMatrixNode<T>;
         income: IMatrixNode<T>;
-        line: (number | undefined)[];
+        line: number[];
     }[];
     getCoords(cellSize: number, padding: number, node: IMatrixNode<T>): number[];
     getSize(cellSize: number, padding: number): number;
     wrapEventHandler: (cb: GraphEventFunc<T>, node: IMatrixNode<T>, incomes: IMatrixNode<T>[]) => (e: React.MouseEvent<Element, MouseEvent>) => void;
+    renderNode(): false | JSX.Element;
+    renderLines(): JSX.Element[];
     render(): JSX.Element;
 }

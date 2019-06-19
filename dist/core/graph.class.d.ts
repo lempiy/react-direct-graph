@@ -115,6 +115,11 @@ export declare class Graph<T> {
      */
     private _handleSimpleNode;
     /**
+     * get outcomes inputs helper
+     * @param itemId node id
+     */
+    private getOutcomesArray;
+    /**
      * traverse main method to get coordinates matrix from graph
      * @returns 2D matrix containing all nodes and anchors
      */

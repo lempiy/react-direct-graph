@@ -617,14 +617,7 @@ var Graph = /** @class */ (function () {
                     }, state, false);
                 });
                 queue.add.apply(queue, [item.id,
-                    levelQueue].concat(this.outcomes(item.id).map(function (outcomeId) {
-                    var out = _this.node(outcomeId);
-                    return {
-                        id: out.id,
-                        next: out.next,
-                        payload: out.payload
-                    };
-                })));
+                    levelQueue].concat(this.getOutcomesArray(item.id)));
             }
         }
         return isInserted;
@@ -636,21 +629,28 @@ var Graph = /** @class */ (function () {
      * @param levelQueue buffer subqueue of iteration
      */
     Graph.prototype._handleSimpleNode = function (item, state, levelQueue) {
-        var _this = this;
         var queue = state.queue;
         var isInserted = this._processOrSkipNodeOnMatrix(item, state);
         if (isInserted) {
             queue.add.apply(queue, [item.id,
-                levelQueue].concat(this.outcomes(item.id).map(function (outcomeId) {
-                var out = _this.node(outcomeId);
-                return {
-                    id: out.id,
-                    next: out.next,
-                    payload: out.payload
-                };
-            })));
+                levelQueue].concat(this.getOutcomesArray(item.id)));
         }
         return isInserted;
+    };
+    /**
+     * get outcomes inputs helper
+     * @param itemId node id
+     */
+    Graph.prototype.getOutcomesArray = function (itemId) {
+        var _this = this;
+        return this.outcomes(itemId).map(function (outcomeId) {
+            var out = _this.node(outcomeId);
+            return {
+                id: out.id,
+                next: out.next,
+                payload: out.payload
+            };
+        });
     };
     /**
      * traverse main method to get coordinates matrix from graph
@@ -787,6 +787,25 @@ var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
         createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
 
+var _a;
+function getPointWithResolver(resolver, cellSize, padding, item) {
+    var _a, _b;
+    var x1, y1;
+    if (item.isAnchor) {
+        _a = getCellCenter(cellSize, item.x, item.y), x1 = _a[0], y1 = _a[1];
+    }
+    else {
+        _b = resolver(cellSize, padding, item.x, item.y), x1 = _b[0], y1 = _b[1];
+    }
+    console.log(x1, y1, cellSize, padding);
+    return [x1, y1];
+}
+var pointResolversMap = (_a = {},
+    _a[VectorDirection.Top] = [getCellTopEntry, getCellBottomEntry],
+    _a[VectorDirection.Bottom] = [getCellBottomEntry, getCellTopEntry],
+    _a[VectorDirection.Right] = [getCellRightEntry, getCellLeftEntry],
+    _a[VectorDirection.Left] = [getCellLeftEntry, getCellRightEntry],
+    _a);
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
     function GraphElement() {
@@ -797,67 +816,10 @@ var GraphElement = /** @class */ (function (_super) {
         return _this;
     }
     GraphElement.prototype.getLineToIncome = function (cellSize, padding, node, income) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
         var direction = getVectorDirection(node.x, node.y, income.x, income.y);
-        var x1, y1, x2, y2;
-        switch (direction) {
-            case VectorDirection.Top:
-                if (node.isAnchor) {
-                    _a = getCellCenter(cellSize, node.x, node.y), x1 = _a[0], y1 = _a[1];
-                }
-                else {
-                    _b = getCellTopEntry(cellSize, padding, node.x, node.y), x1 = _b[0], y1 = _b[1];
-                }
-                if (income.isAnchor) {
-                    _c = getCellCenter(cellSize, income.x, income.y), x2 = _c[0], y2 = _c[1];
-                }
-                else {
-                    _d = getCellBottomEntry(cellSize, padding, income.x, income.y), x2 = _d[0], y2 = _d[1];
-                }
-                break;
-            case VectorDirection.Bottom:
-                if (node.isAnchor) {
-                    _e = getCellCenter(cellSize, node.x, node.y), x1 = _e[0], y1 = _e[1];
-                }
-                else {
-                    _f = getCellBottomEntry(cellSize, padding, node.x, node.y), x1 = _f[0], y1 = _f[1];
-                }
-                if (income.isAnchor) {
-                    _g = getCellCenter(cellSize, income.x, income.y), x2 = _g[0], y2 = _g[1];
-                }
-                else {
-                    _h = getCellTopEntry(cellSize, padding, income.x, income.y), x2 = _h[0], y2 = _h[1];
-                }
-                break;
-            case VectorDirection.Right:
-                if (node.isAnchor) {
-                    _j = getCellCenter(cellSize, node.x, node.y), x1 = _j[0], y1 = _j[1];
-                }
-                else {
-                    _k = getCellRightEntry(cellSize, padding, node.x, node.y), x1 = _k[0], y1 = _k[1];
-                }
-                if (income.isAnchor) {
-                    _l = getCellCenter(cellSize, income.x, income.y), x2 = _l[0], y2 = _l[1];
-                }
-                else {
-                    _m = getCellLeftEntry(cellSize, padding, income.x, income.y), x2 = _m[0], y2 = _m[1];
-                }
-                break;
-            case VectorDirection.Left:
-                if (node.isAnchor) {
-                    _o = getCellCenter(cellSize, node.x, node.y), x1 = _o[0], y1 = _o[1];
-                }
-                else {
-                    _p = getCellLeftEntry(cellSize, padding, node.x, node.y), x1 = _p[0], y1 = _p[1];
-                }
-                if (income.isAnchor) {
-                    _q = getCellCenter(cellSize, income.x, income.y), x2 = _q[0], y2 = _q[1];
-                }
-                else {
-                    _r = getCellRightEntry(cellSize, padding, income.x, income.y), x2 = _r[0], y2 = _r[1];
-                }
-                break;
-        }
+        var _a = pointResolversMap[direction], from = _a[0], to = _a[1];
+        var _b = getPointWithResolver(from, cellSize, padding, node), x1 = _b[0], y1 = _b[1];
+        var _c = getPointWithResolver(to, cellSize, padding, income), x2 = _c[0], y2 = _c[1];
         return {
             node: node,
             income: income,
@@ -880,37 +842,44 @@ var GraphElement = /** @class */ (function (_super) {
     GraphElement.prototype.getSize = function (cellSize, padding) {
         return cellSize - padding * 2;
     };
-    GraphElement.prototype.render = function () {
-        var _this = this;
-        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding, onNodeClick = _a.onNodeClick, onNodeMouseEnter = _a.onNodeMouseEnter, onNodeMouseLeave = _a.onNodeMouseLeave, onEdgeClick = _a.onEdgeClick, onEdgeMouseEnter = _a.onEdgeMouseEnter, onEdgeMouseLeave = _a.onEdgeMouseLeave;
+    GraphElement.prototype.renderNode = function () {
+        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding, onNodeClick = _a.onNodeClick, onNodeMouseEnter = _a.onNodeMouseEnter, onNodeMouseLeave = _a.onNodeMouseLeave;
         var _b = this.getCoords(cellSize, padding, node), x = _b[0], y = _b[1];
-        var lines = this.getLines(cellSize, padding, node, incomes);
         var size = this.getSize(cellSize, padding);
         var NodeIcon = withForeignObject(this.props.component ? this.props.component : DefaultNodeIcon);
+        return (!node.isAnchor && (createElement("g", __assign({ className: "node-icon-group" }, {
+            onClick: onNodeClick &&
+                this.wrapEventHandler(onNodeClick, node, incomes),
+            onMouseEnter: onNodeMouseEnter &&
+                this.wrapEventHandler(onNodeMouseEnter, node, incomes),
+            onMouseLeave: onNodeMouseLeave &&
+                this.wrapEventHandler(onNodeMouseLeave, node, incomes)
+        }),
+            createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }))));
+    };
+    GraphElement.prototype.renderLines = function () {
+        var _this = this;
+        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding, onEdgeClick = _a.onEdgeClick, onEdgeMouseEnter = _a.onEdgeMouseEnter, onEdgeMouseLeave = _a.onEdgeMouseLeave;
+        var lines = this.getLines(cellSize, padding, node, incomes);
+        return (lines.map(function (l) { return (createElement("line", __assign({}, {
+            onClick: onEdgeClick &&
+                _this.wrapEventHandler(onEdgeClick, l.node, [
+                    l.income
+                ]),
+            onMouseEnter: onEdgeMouseEnter &&
+                _this.wrapEventHandler(onEdgeMouseEnter, l.node, [l.income]),
+            onMouseLeave: onEdgeMouseLeave &&
+                _this.wrapEventHandler(onEdgeMouseLeave, l.node, [l.income])
+        }, { key: "line-" + node.id + "-" + l.income.id, className: "node-line", x1: l.line[0], y1: l.line[1], x2: l.line[2], y2: l.line[3] }))); }));
+    };
+    GraphElement.prototype.render = function () {
         return (createElement("g", { className: "node-group", style: {
                 strokeWidth: 2,
                 fill: "#ffffff",
                 stroke: "#2d578b"
             } },
-            !node.isAnchor && (createElement("g", __assign({ className: "node-icon-group" }, {
-                onClick: onNodeClick &&
-                    this.wrapEventHandler(onNodeClick, node, incomes),
-                onMouseEnter: onNodeMouseEnter &&
-                    this.wrapEventHandler(onNodeMouseEnter, node, incomes),
-                onMouseLeave: onNodeMouseLeave &&
-                    this.wrapEventHandler(onNodeMouseLeave, node, incomes)
-            }),
-                createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }))),
-            lines.map(function (l) { return (createElement("line", __assign({}, {
-                onClick: onEdgeClick &&
-                    _this.wrapEventHandler(onEdgeClick, l.node, [
-                        l.income
-                    ]),
-                onMouseEnter: onEdgeMouseEnter &&
-                    _this.wrapEventHandler(onEdgeMouseEnter, l.node, [l.income]),
-                onMouseLeave: onEdgeMouseLeave &&
-                    _this.wrapEventHandler(onEdgeMouseLeave, l.node, [l.income])
-            }, { key: "line-" + node.id + "-" + l.income.id, className: "node-line", x1: l.line[0], y1: l.line[1], x2: l.line[2], y2: l.line[3] }))); })));
+            this.renderNode(),
+            this.renderLines()));
     };
     return GraphElement;
 }(Component));

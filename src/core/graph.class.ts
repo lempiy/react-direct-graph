@@ -325,14 +325,7 @@ export class Graph<T> {
                 queue.add(
                     item.id,
                     levelQueue,
-                    ...this.outcomes(item.id).map(outcomeId => {
-                        const out = this.node(outcomeId);
-                        return {
-                            id: out.id,
-                            next: out.next,
-                            payload: out.payload
-                        };
-                    })
+                    ...this.getOutcomesArray(item.id)
                 );
             }
         }
@@ -355,17 +348,24 @@ export class Graph<T> {
             queue.add(
                 item.id,
                 levelQueue,
-                ...this.outcomes(item.id).map(outcomeId => {
-                    const out = this.node(outcomeId);
-                    return {
-                        id: out.id,
-                        next: out.next,
-                        payload: out.payload
-                    };
-                })
+                ...this.getOutcomesArray(item.id)
             );
         }
         return isInserted;
+    }
+    /**
+     * get outcomes inputs helper
+     * @param itemId node id
+     */
+    private getOutcomesArray(itemId: string):INodeInput<T>[] {
+        return this.outcomes(itemId).map(outcomeId => {
+            const out = this.node(outcomeId);
+            return {
+                id: out.id,
+                next: out.next,
+                payload: out.payload
+            };
+        })
     }
     /**
      * traverse main method to get coordinates matrix from graph

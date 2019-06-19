@@ -34,7 +34,6 @@ export class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
             ...restProps
         } = this.props;
         const elements = this.getNodeElementInputs(nodesMap);
-
         return (
             <svg
                 version="1"

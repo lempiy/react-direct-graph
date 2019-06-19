@@ -36,6 +36,30 @@ export type DataProps<T> = {
     incomes: IMatrixNode<T>[];
 };
 
+type pointResolver = (cellSize: number, padding: number, x:number, y:number) => number[]
+function getPointWithResolver <T>(resolver: pointResolver, cellSize: number, padding: number, item: IMatrixNode<T>):number[] {
+    let x1, y1;
+    if (item.isAnchor) {
+        [x1, y1] = getCellCenter(cellSize, item.x, item.y);
+    } else {
+        [x1, y1] = resolver(
+            cellSize,
+            padding,
+            item.x,
+            item.y
+        );
+    }
+    console.log(x1, y1, cellSize, padding)
+    return [x1, y1]
+}
+
+const pointResolversMap: {[key in VectorDirection]:pointResolver[]} = {
+    [VectorDirection.Top]: [getCellTopEntry, getCellBottomEntry],
+    [VectorDirection.Bottom]: [getCellBottomEntry, getCellTopEntry],
+    [VectorDirection.Right]: [getCellRightEntry, getCellLeftEntry],
+    [VectorDirection.Left]: [getCellLeftEntry, getCellRightEntry],
+}
+
 export class GraphElement<T> extends React.Component<
     DataProps<T> & ViewProps<T>
 > {
@@ -51,98 +75,9 @@ export class GraphElement<T> extends React.Component<
             income.x,
             income.y
         );
-        let x1, y1, x2, y2;
-
-        switch (direction) {
-            case VectorDirection.Top:
-                if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
-                } else {
-                    [x1, y1] = getCellTopEntry(
-                        cellSize,
-                        padding,
-                        node.x,
-                        node.y
-                    );
-                }
-                if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
-                } else {
-                    [x2, y2] = getCellBottomEntry(
-                        cellSize,
-                        padding,
-                        income.x,
-                        income.y
-                    );
-                }
-                break;
-            case VectorDirection.Bottom:
-                if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
-                } else {
-                    [x1, y1] = getCellBottomEntry(
-                        cellSize,
-                        padding,
-                        node.x,
-                        node.y
-                    );
-                }
-                if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
-                } else {
-                    [x2, y2] = getCellTopEntry(
-                        cellSize,
-                        padding,
-                        income.x,
-                        income.y
-                    );
-                }
-                break;
-            case VectorDirection.Right:
-                if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
-                } else {
-                    [x1, y1] = getCellRightEntry(
-                        cellSize,
-                        padding,
-                        node.x,
-                        node.y
-                    );
-                }
-                if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
-                } else {
-                    [x2, y2] = getCellLeftEntry(
-                        cellSize,
-                        padding,
-                        income.x,
-                        income.y
-                    );
-                }
-                break;
-            case VectorDirection.Left:
-                if (node.isAnchor) {
-                    [x1, y1] = getCellCenter(cellSize, node.x, node.y);
-                } else {
-                    [x1, y1] = getCellLeftEntry(
-                        cellSize,
-                        padding,
-                        node.x,
-                        node.y
-                    );
-                }
-                if (income.isAnchor) {
-                    [x2, y2] = getCellCenter(cellSize, income.x, income.y);
-                } else {
-                    [x2, y2] = getCellRightEntry(
-                        cellSize,
-                        padding,
-                        income.x,
-                        income.y
-                    );
-                }
-                break;
-        }
+        const [from, to] = pointResolversMap[direction]
+        const [x1, y1] = getPointWithResolver(from, cellSize, padding, node)
+        const [x2, y2] = getPointWithResolver(to, cellSize, padding, income)
         return {
             node,
             income,
@@ -185,7 +120,7 @@ export class GraphElement<T> extends React.Component<
         return (e: React.MouseEvent) => cb(e, node, incomes);
     };
 
-    render() {
+    renderNode() {
         const {
             node,
             incomes,
@@ -194,17 +129,101 @@ export class GraphElement<T> extends React.Component<
             onNodeClick,
             onNodeMouseEnter,
             onNodeMouseLeave,
-            onEdgeClick,
-            onEdgeMouseEnter,
-            onEdgeMouseLeave
         } = this.props;
         const [x, y] = this.getCoords(cellSize, padding, node);
-        const lines = this.getLines(cellSize, padding, node, incomes);
         const size = this.getSize(cellSize, padding);
         const NodeIcon = withForeignObject<GraphNodeIconComponentProps<T>>(
             this.props.component ? this.props.component : DefaultNodeIcon
         );
 
+        return (
+            !node.isAnchor && (
+                <g
+                    className="node-icon-group"
+                    {...{
+                        onClick:
+                            onNodeClick &&
+                            this.wrapEventHandler(
+                                onNodeClick,
+                                node,
+                                incomes
+                            ),
+                        onMouseEnter:
+                            onNodeMouseEnter &&
+                            this.wrapEventHandler(
+                                onNodeMouseEnter,
+                                node,
+                                incomes
+                            ),
+                        onMouseLeave:
+                            onNodeMouseLeave &&
+                            this.wrapEventHandler(
+                                onNodeMouseLeave,
+                                node,
+                                incomes
+                            )
+                    }}
+                >
+                    <NodeIcon
+                        x={x}
+                        y={y}
+                        height={size}
+                        width={size}
+                        node={node}
+                        incomes={incomes}
+                    />
+                </g>
+            )
+        )
+    }
+
+    renderLines() {
+        const {
+            node,
+            incomes,
+            cellSize,
+            padding,
+            onEdgeClick,
+            onEdgeMouseEnter,
+            onEdgeMouseLeave
+        } = this.props;
+        const lines = this.getLines(cellSize, padding, node, incomes);
+        return (
+            lines.map(l => (
+                <line
+                    {...{
+                        onClick:
+                            onEdgeClick &&
+                            this.wrapEventHandler(onEdgeClick, l.node, [
+                                l.income
+                            ]),
+                        onMouseEnter:
+                            onEdgeMouseEnter &&
+                            this.wrapEventHandler(
+                                onEdgeMouseEnter,
+                                l.node,
+                                [l.income]
+                            ),
+                        onMouseLeave:
+                            onEdgeMouseLeave &&
+                            this.wrapEventHandler(
+                                onEdgeMouseLeave,
+                                l.node,
+                                [l.income]
+                            )
+                    }}
+                    key={`line-${node.id}-${l.income.id}`}
+                    className="node-line"
+                    x1={l.line[0]}
+                    y1={l.line[1]}
+                    x2={l.line[2]}
+                    y2={l.line[3]}
+                />
+            ))
+        )
+    }
+
+    render() {
         return (
             <g
                 className="node-group"
@@ -214,74 +233,8 @@ export class GraphElement<T> extends React.Component<
                     stroke: "#2d578b"
                 }}
             >
-                {!node.isAnchor && (
-                    <g
-                        className="node-icon-group"
-                        {...{
-                            onClick:
-                                onNodeClick &&
-                                this.wrapEventHandler(
-                                    onNodeClick,
-                                    node,
-                                    incomes
-                                ),
-                            onMouseEnter:
-                                onNodeMouseEnter &&
-                                this.wrapEventHandler(
-                                    onNodeMouseEnter,
-                                    node,
-                                    incomes
-                                ),
-                            onMouseLeave:
-                                onNodeMouseLeave &&
-                                this.wrapEventHandler(
-                                    onNodeMouseLeave,
-                                    node,
-                                    incomes
-                                )
-                        }}
-                    >
-                        <NodeIcon
-                            x={x}
-                            y={y}
-                            height={size}
-                            width={size}
-                            node={node}
-                            incomes={incomes}
-                        />
-                    </g>
-                )}
-                {lines.map(l => (
-                    <line
-                        {...{
-                            onClick:
-                                onEdgeClick &&
-                                this.wrapEventHandler(onEdgeClick, l.node, [
-                                    l.income
-                                ]),
-                            onMouseEnter:
-                                onEdgeMouseEnter &&
-                                this.wrapEventHandler(
-                                    onEdgeMouseEnter,
-                                    l.node,
-                                    [l.income]
-                                ),
-                            onMouseLeave:
-                                onEdgeMouseLeave &&
-                                this.wrapEventHandler(
-                                    onEdgeMouseLeave,
-                                    l.node,
-                                    [l.income]
-                                )
-                        }}
-                        key={`line-${node.id}-${l.income.id}`}
-                        className="node-line"
-                        x1={l.line[0]}
-                        y1={l.line[1]}
-                        x2={l.line[2]}
-                        y2={l.line[3]}
-                    />
-                ))}
+                {this.renderNode()}
+                {this.renderLines()}
             </g>
         );
     }

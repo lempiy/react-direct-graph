@@ -5,8 +5,8 @@ import React, {
 import DirectGraph from 'react-direct-graph'
 import graph from './graph'
 
-const sellSize = 200
-const padding = sellSize * 0.25
+const cellSize = 200
+const padding = cellSize * 0.25
 
 export default class App extends Component {
     constructor(props) {
@@ -144,8 +144,8 @@ export default class App extends Component {
             <DirectGraph list = {
                     this.state.graph
                 }
-                sellSize = {
-                    sellSize
+                cellSize = {
+                    cellSize
                 }
                 padding = {
                     padding
