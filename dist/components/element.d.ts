@@ -31,7 +31,13 @@ export declare class GraphElement<T> extends React.Component<DataProps<T> & View
     getCoords(cellSize: number, padding: number, node: IMatrixNode<T>): number[];
     getSize(cellSize: number, padding: number): number;
     wrapEventHandler: (cb: GraphEventFunc<T>, node: IMatrixNode<T>, incomes: IMatrixNode<T>[]) => (e: React.MouseEvent<Element, MouseEvent>) => void;
+    getNodeHandlers(): {
+        [eventName: string]: (e: React.MouseEvent) => void;
+    };
     renderNode(): false | JSX.Element;
+    getLineHandlers(node: IMatrixNode<T>, income: IMatrixNode<T>): {
+        [eventName: string]: (e: React.MouseEvent) => void;
+    };
     renderLines(): JSX.Element[];
     render(): JSX.Element;
 }

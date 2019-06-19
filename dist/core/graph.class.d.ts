@@ -1,62 +1,14 @@
 import { INodeInput } from "./node.interface";
 import { Matrix } from "./matrix.class";
+import { GraphStruct } from "./graph-struct.class";
 /**
  * @class Graph
  * Main compute class used to transform
  * linked list of nodes to coordinate matrix
  */
-export declare class Graph<T> {
-    private _list;
-    private _nodesMap;
-    private _incomesByNodeIdMap;
-    private _outcomesByNodeIdMap;
+export declare class Graph<T> extends GraphStruct<T> {
+    protected _list: INodeInput<T>[];
     constructor(list: INodeInput<T>[]);
-    /**
-     * Fill graph with new nodes
-     * @param list input linked list of nodes
-     */
-    applyList(list: INodeInput<T>[]): void;
-    /**
-     * Get graph roots.
-     * Roots is nodes without incomes
-     */
-    roots(): INodeInput<T>[];
-    /**
-     * Get type of node
-     * @param id id of node
-     * @returns type of the node
-     */
-    private nodeType;
-    /**
-     * Whether or node is split
-     * @param id id of node
-     */
-    private isSplit;
-    /**
-     * Whether or node is join
-     * @param id id of node
-     */
-    private isJoin;
-    /**
-     * Whether or node is root
-     * @param id id of node
-     */
-    private isRoot;
-    /**
-     * Get outcomes of node by id
-     * @param id id of node
-     */
-    private outcomes;
-    /**
-     * Get incomes of node by id
-     * @param id id of node
-     */
-    private incomes;
-    /**
-     * Get node by id
-     * @param id node id
-     */
-    private node;
     /**
      * Check if item has unresolved incomes
      * @param item item to check

@@ -341,14 +341,13 @@ var Matrix = /** @class */ (function () {
     return Matrix;
 }());
 
-var MAX_ITERATIONS = 10000;
 /**
- * @class Graph
- * Main compute class used to transform
- * linked list of nodes to coordinate matrix
+ * @class GraphStruct
+ * Frame parent-class to simplify graph
+ * elements recognition
  */
-var Graph = /** @class */ (function () {
-    function Graph(list) {
+var GraphStruct = /** @class */ (function () {
+    function GraphStruct(list) {
         this._list = [];
         this._nodesMap = {};
         this._incomesByNodeIdMap = {};
@@ -359,7 +358,7 @@ var Graph = /** @class */ (function () {
      * Fill graph with new nodes
      * @param list input linked list of nodes
      */
-    Graph.prototype.applyList = function (list) {
+    GraphStruct.prototype.applyList = function (list) {
         var _this = this;
         this._incomesByNodeIdMap = {};
         this._outcomesByNodeIdMap = {};
@@ -389,7 +388,7 @@ var Graph = /** @class */ (function () {
      * Get graph roots.
      * Roots is nodes without incomes
      */
-    Graph.prototype.roots = function () {
+    GraphStruct.prototype.roots = function () {
         var _this = this;
         return this._list.filter(function (node) { return _this.isRoot(node.id); });
     };
@@ -398,7 +397,7 @@ var Graph = /** @class */ (function () {
      * @param id id of node
      * @returns type of the node
      */
-    Graph.prototype.nodeType = function (id) {
+    GraphStruct.prototype.nodeType = function (id) {
         if (this.isRoot(id) && this.isSplit(id))
             return NodeType.RootSplit;
         if (this.isRoot(id))
@@ -413,7 +412,7 @@ var Graph = /** @class */ (function () {
      * Whether or node is split
      * @param id id of node
      */
-    Graph.prototype.isSplit = function (id) {
+    GraphStruct.prototype.isSplit = function (id) {
         return (this._outcomesByNodeIdMap[id] &&
             this._outcomesByNodeIdMap[id].length > 1);
     };
@@ -421,7 +420,7 @@ var Graph = /** @class */ (function () {
      * Whether or node is join
      * @param id id of node
      */
-    Graph.prototype.isJoin = function (id) {
+    GraphStruct.prototype.isJoin = function (id) {
         return (this._incomesByNodeIdMap[id] &&
             this._incomesByNodeIdMap[id].length > 1);
     };
@@ -429,7 +428,7 @@ var Graph = /** @class */ (function () {
      * Whether or node is root
      * @param id id of node
      */
-    Graph.prototype.isRoot = function (id) {
+    GraphStruct.prototype.isRoot = function (id) {
         return (!this._incomesByNodeIdMap[id] ||
             !this._incomesByNodeIdMap[id].length);
     };
@@ -437,23 +436,40 @@ var Graph = /** @class */ (function () {
      * Get outcomes of node by id
      * @param id id of node
      */
-    Graph.prototype.outcomes = function (id) {
+    GraphStruct.prototype.outcomes = function (id) {
         return this._outcomesByNodeIdMap[id];
     };
     /**
      * Get incomes of node by id
      * @param id id of node
      */
-    Graph.prototype.incomes = function (id) {
+    GraphStruct.prototype.incomes = function (id) {
         return this._incomesByNodeIdMap[id];
     };
     /**
      * Get node by id
      * @param id node id
      */
-    Graph.prototype.node = function (id) {
+    GraphStruct.prototype.node = function (id) {
         return this._nodesMap[id];
     };
+    return GraphStruct;
+}());
+
+var MAX_ITERATIONS = 10000;
+/**
+ * @class Graph
+ * Main compute class used to transform
+ * linked list of nodes to coordinate matrix
+ */
+var Graph = /** @class */ (function (_super) {
+    __extends(Graph, _super);
+    function Graph(list) {
+        var _this = _super.call(this, list) || this;
+        _this._list = [];
+        _this.applyList(list);
+        return _this;
+    }
     /**
      * Check if item has unresolved incomes
      * @param item item to check
@@ -632,8 +648,7 @@ var Graph = /** @class */ (function () {
         var queue = state.queue;
         var isInserted = this._processOrSkipNodeOnMatrix(item, state);
         if (isInserted) {
-            queue.add.apply(queue, [item.id,
-                levelQueue].concat(this.getOutcomesArray(item.id)));
+            queue.add.apply(queue, [item.id, levelQueue].concat(this.getOutcomesArray(item.id)));
         }
         return isInserted;
     };
@@ -706,7 +721,7 @@ var Graph = /** @class */ (function () {
         return mtx;
     };
     return Graph;
-}());
+}(GraphStruct));
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -734,25 +749,25 @@ var getCellCenter = function (cellSize, cellX, cellY) {
     var y = cellY * cellSize + cellSize * 0.5;
     return [x, y];
 };
-var getCellTopEntry = function (cellSize, padding, cellX, cellY) {
-    var x = getCellCenter(cellSize, cellX, cellY)[0];
-    var y = cellY * cellSize + padding;
-    return [x, y];
-};
-var getCellBottomEntry = function (cellSize, padding, cellX, cellY) {
-    var x = getCellCenter(cellSize, cellX, cellY)[0];
-    var y = cellY * cellSize + (cellSize - padding);
-    return [x, y];
-};
-var getCellRightEntry = function (cellSize, padding, cellX, cellY) {
-    var _a = getCellCenter(cellSize, cellX, cellY), y = _a[1];
-    var x = cellX * cellSize + (cellSize - padding);
-    return [x, y];
-};
-var getCellLeftEntry = function (cellSize, padding, cellX, cellY) {
-    var _a = getCellCenter(cellSize, cellX, cellY), y = _a[1];
-    var x = cellX * cellSize + padding;
-    return [x, y];
+var getCellEntry = function (direction, cellSize, padding, cellX, cellY) {
+    switch (direction) {
+        case VectorDirection.Top:
+            var x = getCellCenter(cellSize, cellX, cellY)[0];
+            var y = cellY * cellSize + padding;
+            return [x, y];
+        case VectorDirection.Bottom:
+            var x = getCellCenter(cellSize, cellX, cellY)[0];
+            var y = cellY * cellSize + (cellSize - padding);
+            return [x, y];
+        case VectorDirection.Right:
+            var _a = getCellCenter(cellSize, cellX, cellY), y = _a[1];
+            var x = cellX * cellSize + (cellSize - padding);
+            return [x, y];
+        case VectorDirection.Left:
+            var _b = getCellCenter(cellSize, cellX, cellY), y = _b[1];
+            var x = cellX * cellSize + padding;
+            return [x, y];
+    }
 };
 
 var DefaultNodeIcon = /** @class */ (function (_super) {
@@ -788,23 +803,22 @@ var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
 }; };
 
 var _a;
-function getPointWithResolver(resolver, cellSize, padding, item) {
+function getPointWithResolver(direction, cellSize, padding, item) {
     var _a, _b;
     var x1, y1;
     if (item.isAnchor) {
         _a = getCellCenter(cellSize, item.x, item.y), x1 = _a[0], y1 = _a[1];
     }
     else {
-        _b = resolver(cellSize, padding, item.x, item.y), x1 = _b[0], y1 = _b[1];
+        _b = getCellEntry(direction, cellSize, padding, item.x, item.y), x1 = _b[0], y1 = _b[1];
     }
-    console.log(x1, y1, cellSize, padding);
     return [x1, y1];
 }
 var pointResolversMap = (_a = {},
-    _a[VectorDirection.Top] = [getCellTopEntry, getCellBottomEntry],
-    _a[VectorDirection.Bottom] = [getCellBottomEntry, getCellTopEntry],
-    _a[VectorDirection.Right] = [getCellRightEntry, getCellLeftEntry],
-    _a[VectorDirection.Left] = [getCellLeftEntry, getCellRightEntry],
+    _a[VectorDirection.Top] = [VectorDirection.Top, VectorDirection.Bottom],
+    _a[VectorDirection.Bottom] = [VectorDirection.Bottom, VectorDirection.Top],
+    _a[VectorDirection.Right] = [VectorDirection.Right, VectorDirection.Left],
+    _a[VectorDirection.Left] = [VectorDirection.Left, VectorDirection.Right],
     _a);
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
@@ -842,35 +856,49 @@ var GraphElement = /** @class */ (function (_super) {
     GraphElement.prototype.getSize = function (cellSize, padding) {
         return cellSize - padding * 2;
     };
+    GraphElement.prototype.getNodeHandlers = function () {
+        var _a = this.props, node = _a.node, incomes = _a.incomes, onNodeClick = _a.onNodeClick, onNodeMouseEnter = _a.onNodeMouseEnter, onNodeMouseLeave = _a.onNodeMouseLeave;
+        var handlers = {};
+        if (onNodeClick) {
+            handlers.onClick = this.wrapEventHandler(onNodeClick, node, incomes);
+        }
+        if (onNodeMouseEnter) {
+            handlers.onMouseEnter = this.wrapEventHandler(onNodeMouseEnter, node, incomes);
+        }
+        if (onNodeMouseLeave) {
+            handlers.onMouseLeave = this.wrapEventHandler(onNodeMouseLeave, node, incomes);
+        }
+        return handlers;
+    };
     GraphElement.prototype.renderNode = function () {
-        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding, onNodeClick = _a.onNodeClick, onNodeMouseEnter = _a.onNodeMouseEnter, onNodeMouseLeave = _a.onNodeMouseLeave;
+        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding;
         var _b = this.getCoords(cellSize, padding, node), x = _b[0], y = _b[1];
         var size = this.getSize(cellSize, padding);
         var NodeIcon = withForeignObject(this.props.component ? this.props.component : DefaultNodeIcon);
-        return (!node.isAnchor && (createElement("g", __assign({ className: "node-icon-group" }, {
-            onClick: onNodeClick &&
-                this.wrapEventHandler(onNodeClick, node, incomes),
-            onMouseEnter: onNodeMouseEnter &&
-                this.wrapEventHandler(onNodeMouseEnter, node, incomes),
-            onMouseLeave: onNodeMouseLeave &&
-                this.wrapEventHandler(onNodeMouseLeave, node, incomes)
-        }),
+        return (!node.isAnchor && (createElement("g", __assign({ className: "node-icon-group" }, this.getNodeHandlers()),
             createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }))));
+    };
+    GraphElement.prototype.getLineHandlers = function (node, income) {
+        var _a = this.props, onEdgeClick = _a.onEdgeClick, onEdgeMouseEnter = _a.onEdgeMouseEnter, onEdgeMouseLeave = _a.onEdgeMouseLeave;
+        var handlers = {};
+        if (onEdgeClick) {
+            handlers.onClick = this.wrapEventHandler(onEdgeClick, node, [
+                income
+            ]);
+        }
+        if (onEdgeMouseEnter) {
+            handlers.onMouseEnter = this.wrapEventHandler(onEdgeMouseEnter, node, [income]);
+        }
+        if (onEdgeMouseLeave) {
+            handlers.onMouseLeave = this.wrapEventHandler(onEdgeMouseLeave, node, [income]);
+        }
+        return handlers;
     };
     GraphElement.prototype.renderLines = function () {
         var _this = this;
-        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding, onEdgeClick = _a.onEdgeClick, onEdgeMouseEnter = _a.onEdgeMouseEnter, onEdgeMouseLeave = _a.onEdgeMouseLeave;
+        var _a = this.props, node = _a.node, incomes = _a.incomes, cellSize = _a.cellSize, padding = _a.padding;
         var lines = this.getLines(cellSize, padding, node, incomes);
-        return (lines.map(function (l) { return (createElement("line", __assign({}, {
-            onClick: onEdgeClick &&
-                _this.wrapEventHandler(onEdgeClick, l.node, [
-                    l.income
-                ]),
-            onMouseEnter: onEdgeMouseEnter &&
-                _this.wrapEventHandler(onEdgeMouseEnter, l.node, [l.income]),
-            onMouseLeave: onEdgeMouseLeave &&
-                _this.wrapEventHandler(onEdgeMouseLeave, l.node, [l.income])
-        }, { key: "line-" + node.id + "-" + l.income.id, className: "node-line", x1: l.line[0], y1: l.line[1], x2: l.line[2], y2: l.line[3] }))); }));
+        return lines.map(function (l) { return (createElement("line", __assign({}, _this.getLineHandlers(l.node, l.income), { key: "line-" + node.id + "-" + l.income.id, className: "node-line", x1: l.line[0], y1: l.line[1], x2: l.line[2], y2: l.line[3] }))); });
     };
     GraphElement.prototype.render = function () {
         return (createElement("g", { className: "node-group", style: {

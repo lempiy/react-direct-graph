@@ -30,46 +30,29 @@ export const getCellCenter = (
     return [x, y];
 };
 
-export const getCellTopEntry = (
+export const getCellEntry = (
+    direction: VectorDirection,
     cellSize: number,
     padding: number,
     cellX: number,
     cellY: number
 ): number[] => {
-    const [x] = getCellCenter(cellSize, cellX, cellY);
-    const y = cellY * cellSize + padding;
-    return [x, y];
-};
-
-export const getCellBottomEntry = (
-    cellSize: number,
-    padding: number,
-    cellX: number,
-    cellY: number
-): number[] => {
-    const [x] = getCellCenter(cellSize, cellX, cellY);
-    const y = cellY * cellSize + (cellSize - padding);
-    return [x, y];
-};
-
-export const getCellRightEntry = (
-    cellSize: number,
-    padding: number,
-    cellX: number,
-    cellY: number
-): number[] => {
-    const [, y] = getCellCenter(cellSize, cellX, cellY);
-    const x = cellX * cellSize + (cellSize - padding);
-    return [x, y];
-};
-
-export const getCellLeftEntry = (
-    cellSize: number,
-    padding: number,
-    cellX: number,
-    cellY: number
-): number[] => {
-    const [, y] = getCellCenter(cellSize, cellX, cellY);
-    const x = cellX * cellSize + padding;
-    return [x, y];
+    switch (direction) {
+        case VectorDirection.Top:
+            var [x] = getCellCenter(cellSize, cellX, cellY);
+            var y = cellY * cellSize + padding;
+            return [x, y];
+        case VectorDirection.Bottom:
+            var [x] = getCellCenter(cellSize, cellX, cellY);
+            var y = cellY * cellSize + (cellSize - padding);
+            return [x, y];
+        case VectorDirection.Right:
+            var [, y] = getCellCenter(cellSize, cellX, cellY);
+            var x = cellX * cellSize + (cellSize - padding);
+            return [x, y];
+        case VectorDirection.Left:
+            var [, y] = getCellCenter(cellSize, cellX, cellY);
+            var x = cellX * cellSize + padding;
+            return [x, y];
+    }
 };
