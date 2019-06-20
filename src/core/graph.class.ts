@@ -189,12 +189,9 @@ export class Graph<T> extends GraphStruct<T> {
         const incomes = item.passedIncomes
         const lowestY = this._getLowestYAmongIncomes(item, mtx)
         incomes.forEach(incomeId => {
-            const point = mtx.find(item => item.id === incomeId)
-            if (!point)
-                throw new Error(
-                    `Income ${incomeId} not found on matrix`
-                )
-            const [, y] = point
+            const p = mtx.find(item => item.id === incomeId)
+            if (!p) throw Error(`Income ${incomeId} not found`)
+            const [, y] = p
             if (lowestY === y) {
                 item.renderIncomes.push(incomeId)
                 return

@@ -14,7 +14,7 @@ checks:
   method-lines:
     enabled: true
     config:
-      threshold: 35
+      threshold: 40
 plugins:
   duplication:
     enabled: true
