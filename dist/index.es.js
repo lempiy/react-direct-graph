@@ -685,34 +685,43 @@ var Graph = /** @class */ (function (_super) {
         });
     };
     /**
+     * Method to handle single iteration item
+     * @param item queue item to process
+     * @param state state of iteration
+     */
+    Graph.prototype._traverseItem = function (item, state, levelQueue) {
+        var mtx = state.mtx;
+        switch (this.nodeType(item.id)) {
+            case NodeType.RootSimple:
+                // find free column and fallthrough
+                state.y = mtx.getFreeRowForColumn(0);
+            case NodeType.Simple:
+                this._handleSimpleNode(item, state, levelQueue);
+                break;
+            case NodeType.RootSplit:
+                // find free column and fallthrough
+                state.y = mtx.getFreeRowForColumn(0);
+            case NodeType.Split:
+                this._handleSplitNode(item, state, levelQueue);
+                break;
+            case NodeType.Join:
+                this._handleJoinNode(item, state, levelQueue);
+                break;
+        }
+    };
+    /**
      * Iterate over one level of graph
      * starting from queue top item
      */
     Graph.prototype._traverseLevel = function (iterations, state) {
-        var mtx = state.mtx, queue = state.queue;
+        var queue = state.queue;
         var levelQueue = queue.drain();
         while (levelQueue.length) {
             iterations++;
             var item = levelQueue.shift();
             if (!item)
                 throw new Error("Cannot shift from buffer queue");
-            switch (this.nodeType(item.id)) {
-                case NodeType.RootSimple:
-                    // find free column and fallthrough
-                    state.y = mtx.getFreeRowForColumn(0);
-                case NodeType.Simple:
-                    this._handleSimpleNode(item, state, levelQueue);
-                    break;
-                case NodeType.RootSplit:
-                    // find free column and fallthrough
-                    state.y = mtx.getFreeRowForColumn(0);
-                case NodeType.Split:
-                    this._handleSplitNode(item, state, levelQueue);
-                    break;
-                case NodeType.Join:
-                    this._handleJoinNode(item, state, levelQueue);
-                    break;
-            }
+            this._traverseItem(item, state, levelQueue);
             if (iterations > MAX_ITERATIONS) {
                 throw new Error("Infinite loop");
             }

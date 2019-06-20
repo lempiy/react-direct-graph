@@ -84,6 +84,12 @@ export declare class Graph<T> extends GraphStruct<T> {
      */
     private getOutcomesArray;
     /**
+     * Method to handle single iteration item
+     * @param item queue item to process
+     * @param state state of iteration
+     */
+    private _traverseItem;
+    /**
      * Iterate over one level of graph
      * starting from queue top item
      */

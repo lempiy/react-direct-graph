@@ -1,9 +1,9 @@
-plugins:
+checks:
   similar-code:
     enabled: true
     config:
       threshold: 60
-  duplication:
+  identical-code:
     enabled: true
     config:
       threshold: 60
@@ -11,6 +11,11 @@ plugins:
     enabled: true
     config:
       threshold: 30
+plugins:
+  duplication:
+    enabled: true
+    config:
+      threshold: 60
 exclude_patterns:
   - "**/test.ts"
   - "**/*.test.ts"
