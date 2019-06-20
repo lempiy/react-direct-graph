@@ -1,4 +1,4 @@
-import { INodeOutput, IMatrixNode } from "./node.interface";
+import { INodeOutput, IMatrixNode } from "./node.interface"
 
 /**
  * @class Matrix
@@ -7,7 +7,7 @@ import { INodeOutput, IMatrixNode } from "./node.interface";
  * something else, for example, HTML or Canvas drawing.
  */
 export class Matrix<T> {
-    private _: Array<Array<INodeOutput<T> | null>> = [];
+    private _: Array<Array<INodeOutput<T> | null>> = []
 
     /**
      * Get with of matrix
@@ -18,13 +18,13 @@ export class Matrix<T> {
                 (length, row) => (row.length > length ? row.length : length),
                 0
             ) || 0
-        );
+        )
     }
     /**
      * Get height of matrix
      */
     get height(): number {
-        return this._.length;
+        return this._.length
     }
     /**
      * Checks whether or not candidate point collides
@@ -32,9 +32,9 @@ export class Matrix<T> {
      * @param point coordinates of point to check
      */
     hasHorizontalCollision([_, y]: number[]): boolean {
-        const row = this._[y];
-        if (!row) return false;
-        return row.some((point: INodeOutput<T> | null) => !!point);
+        const row = this._[y]
+        if (!row) return false
+        return row.some((point: INodeOutput<T> | null) => !!point)
     }
 
     /**
@@ -44,14 +44,14 @@ export class Matrix<T> {
      */
     hasVerticalCollision([x, y]: number[]): boolean {
         if (x >= this.width) {
-            return false;
+            return false
         }
         return this._.some((row, index) => {
             if (index < y) {
-                return false;
+                return false
             }
-            return !!row[x];
-        });
+            return !!row[x]
+        })
     }
 
     /**
@@ -63,14 +63,14 @@ export class Matrix<T> {
      * @param x column coordinate to use for search
      */
     getFreeRowForColumn(x: number): number {
-        if (this.height === 0) return 0;
+        if (this.height === 0) return 0
         let y = this._.findIndex(row => {
-            return !row[x];
-        });
+            return !row[x]
+        })
         if (y === -1) {
-            y = this.height;
+            y = this.height
         }
-        return y;
+        return y
     }
     /**
      * Extend matrix with empty rows
@@ -78,10 +78,10 @@ export class Matrix<T> {
      */
     private _extendHeight(toValue: number): void {
         while (this.height < toValue) {
-            const row: Array<INodeOutput<T> | null> = [];
-            row.length = this.width;
-            row.fill(null);
-            this._.push(row);
+            const row: Array<INodeOutput<T> | null> = []
+            row.length = this.width
+            row.fill(null)
+            this._.push(row)
         }
     }
     /**
@@ -91,19 +91,19 @@ export class Matrix<T> {
     private _extendWidth(toValue: number): void {
         this._.forEach(row => {
             while (row.length < toValue) {
-                row.push(null);
+                row.push(null)
             }
-        });
+        })
     }
     /**
      * Insert row before y
      * @param y coordinate
      */
     insertRowBefore(y: number) {
-        const row: Array<INodeOutput<T> | null> = [];
-        row.length = this.width;
-        row.fill(null);
-        this._.splice(y, 0, row);
+        const row: Array<INodeOutput<T> | null> = []
+        row.length = this.width
+        row.fill(null)
+        this._.splice(y, 0, row)
     }
     /**
      * Insert column before x
@@ -111,8 +111,8 @@ export class Matrix<T> {
      */
     insertColumnBefore(x: number) {
         this._.forEach(row => {
-            row.splice(x, 0, null);
-        });
+            row.splice(x, 0, null)
+        })
     }
     /**
      * Find x, y coordinate of first point item that
@@ -120,18 +120,18 @@ export class Matrix<T> {
      * @param callback similar to [].find. Returns boolean
      */
     find(callback: (item: INodeOutput<T>) => boolean): number[] | null {
-        let result = null;
+        let result = null
         this._.forEach((row, y) => {
             row.some((point, x) => {
-                if (!point) return false;
+                if (!point) return false
                 if (callback(point)) {
-                    result = [x, y];
-                    return true;
+                    result = [x, y]
+                    return true
                 }
-                return false;
-            });
-        });
-        return result;
+                return false
+            })
+        })
+        return result
     }
     /**
      * Paste item to particular cell
@@ -140,13 +140,13 @@ export class Matrix<T> {
      */
     insert([x, y]: number[], item: INodeOutput<T>) {
         if (this.height <= y) {
-            this._extendHeight(y + 1);
+            this._extendHeight(y + 1)
         }
         if (this.width <= x) {
-            this._extendWidth(x + 1);
+            this._extendWidth(x + 1)
         }
 
-        this._[y][x] = item;
+        this._[y][x] = item
     }
     /**
      * @returns key value object where key is node id and
@@ -155,10 +155,10 @@ export class Matrix<T> {
     normalize(): { [id: string]: IMatrixNode<T> } {
         return this._.reduce((acc, row, y) => {
             row.forEach((item, x) => {
-                if (!item) return;
-                acc[item.id] = { ...item, x, y };
-            });
-            return acc;
-        }, {});
+                if (!item) return
+                acc[item.id] = { ...item, x, y }
+            })
+            return acc
+        }, {})
     }
 }

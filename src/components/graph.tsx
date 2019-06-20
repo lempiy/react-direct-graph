@@ -1,30 +1,30 @@
-import * as React from "react";
-import { IMatrixNode } from "../core";
-import { GraphElement, ViewProps } from "./element";
+import * as React from "react"
+import { IMatrixNode } from "../core"
+import { GraphElement, ViewProps } from "./element"
 
 export type Props<T> = {
-    nodesMap: { [id: string]: IMatrixNode<T> };
-    cellSize: number;
-    padding: number;
-    widthInCells: number;
-    heightInCells: number;
-};
+    nodesMap: { [id: string]: IMatrixNode<T> }
+    cellSize: number
+    padding: number
+    widthInCells: number
+    heightInCells: number
+}
 
 interface INodeElementInput<T> {
-    node: IMatrixNode<T>;
-    incomes: IMatrixNode<T>[];
+    node: IMatrixNode<T>
+    incomes: IMatrixNode<T>[]
 }
 
 export class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
     getNodeElementInputs = (nodesMap: {
-        [id: string]: IMatrixNode<T>;
+        [id: string]: IMatrixNode<T>
     }): INodeElementInput<T>[] => {
         return Object.entries(nodesMap).map(([_, node]) => ({
             node,
             incomes: node.renderIncomes.map(id => nodesMap[id])
-        }));
-    };
-    render() {
+        }))
+    }
+    renderElements() {
         const {
             nodesMap,
             cellSize,
@@ -32,24 +32,36 @@ export class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
             widthInCells,
             heightInCells,
             ...restProps
-        } = this.props;
-        const elements = this.getNodeElementInputs(nodesMap);
+        } = this.props
+        const elements = this.getNodeElementInputs(nodesMap)
+        return (
+            elements.map(props => (
+                <GraphElement
+                    key={props.node.id}
+                    cellSize={cellSize}
+                    padding={padding}
+                    {...props}
+                    {...restProps}
+                />
+            ))
+        )
+    }
+    render() {
+        const {
+            cellSize,
+            widthInCells,
+            heightInCells
+        } = this.props
         return (
             <svg
                 version="1"
                 width={widthInCells * cellSize}
                 height={heightInCells * cellSize}
             >
-                {elements.map(props => (
-                    <GraphElement
-                        key={props.node.id}
-                        cellSize={cellSize}
-                        padding={padding}
-                        {...props}
-                        {...restProps}
-                    />
-                ))}
+                {
+                    this.renderElements()
+                }
             </svg>
-        );
+        )
     }
 }

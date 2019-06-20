@@ -1,9 +1,9 @@
-import { INodeOutput } from "./node.interface";
+import { INodeOutput } from "./node.interface"
 
 export interface IQueueItem<T> {
-    id: string;
-    payload: T;
-    next: string[];
+    id: string
+    payload: T
+    next: string[]
 }
 
 /**
@@ -12,7 +12,7 @@ export interface IQueueItem<T> {
  * graph traversing
  */
 export class TraverseQueue<T> {
-    private _: INodeOutput<T>[] = [];
+    private _: INodeOutput<T>[] = []
     /**
      * Add items to queue. If items already exist in this queue
      * or bufferQueue do nothing but push new passed income to
@@ -31,10 +31,10 @@ export class TraverseQueue<T> {
                 this.find(item => item.id === itm.id) ||
                 (bufferQueue
                     ? bufferQueue.find(item => item.id === itm.id)
-                    : null);
+                    : null)
             if (item && incomeId) {
-                item.passedIncomes.push(incomeId);
-                return;
+                item.passedIncomes.push(incomeId)
+                return
             }
             this._.push({
                 id: itm.id,
@@ -42,39 +42,39 @@ export class TraverseQueue<T> {
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
                 renderIncomes: incomeId ? [incomeId] : []
-            });
-        });
+            })
+        })
     }
 
     find(cb: (item: INodeOutput<T>) => boolean): INodeOutput<T> | void {
-        return this._.find(cb);
+        return this._.find(cb)
     }
     /**
      * Push item to queue. Skipping `add` method additional phases.
      * @param item node item to add
      */
     push(item: INodeOutput<T>): void {
-        this._.push(item);
+        this._.push(item)
     }
     /**
      * get current queue length
      */
     get length(): number {
-        return this._.length;
+        return this._.length
     }
     /**
      * @param cb callback with condition to check
      * @returns true if at list one item satified condition in callback
      */
     some(cb: (item: INodeOutput<T>) => boolean): boolean {
-        return this._.some(cb);
+        return this._.some(cb)
     }
     /**
      * Shift first element
      * @returns first element from the queue
      */
     shift(): INodeOutput<T> | void {
-        return this._.shift();
+        return this._.shift()
     }
     /**
      * Create new queue and extract of current
@@ -82,9 +82,9 @@ export class TraverseQueue<T> {
      * @returns newQueue new queue with items from old queue
      */
     drain(): TraverseQueue<T> {
-        const newQueue = new TraverseQueue<T>();
-        newQueue._ = newQueue._.concat(this._);
-        this._ = [];
-        return newQueue;
+        const newQueue = new TraverseQueue<T>()
+        newQueue._ = newQueue._.concat(this._)
+        this._ = []
+        return newQueue
     }
 }

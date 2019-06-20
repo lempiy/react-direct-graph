@@ -18,6 +18,7 @@ export declare class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
     getNodeElementInputs: (nodesMap: {
         [id: string]: IMatrixNode<T>;
     }) => INodeElementInput<T>[];
+    renderElements(): JSX.Element[];
     render(): JSX.Element;
 }
 export {};

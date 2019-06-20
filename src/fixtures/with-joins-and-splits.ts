@@ -118,4 +118,4 @@ export const withJoinsAndSplitsFixture = [
             exist: true
         }
     }
-];
+]

@@ -46,12 +46,24 @@ export declare class Graph<T> extends GraphStruct<T> {
      */
     private _processOrSkipNodeOnMatrix;
     /**
+     * Insert outcomes of split node
+     * @param item item to handle
+     * @param state current state of iteration
+     */
+    private _insertSplitOutcomes;
+    /**
      * Function to handle split nodes
      * @param item item to handle
      * @param state current state of iteration
      * @param levelQueue buffer subqueue of iteration
      */
     private _handleSplitNode;
+    /**
+     * Insert incomes of join node
+     * @param item item to handle
+     * @param state current state of iteration
+     */
+    private _insertJoinIncomes;
     /**
      * Function to handle join nodes
      * @param item item to handle
@@ -71,6 +83,16 @@ export declare class Graph<T> extends GraphStruct<T> {
      * @param itemId node id
      */
     private getOutcomesArray;
+    /**
+     * Iterate over one level of graph
+     * starting from queue top item
+     */
+    private _traverseLevel;
+    /**
+     * Iterate over graph
+     * starting from queue root items
+     */
+    private _traverseList;
     /**
      * traverse main method to get coordinates matrix from graph
      * @returns 2D matrix containing all nodes and anchors

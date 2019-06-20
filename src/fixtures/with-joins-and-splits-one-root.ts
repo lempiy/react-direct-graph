@@ -118,4 +118,4 @@ export const withJoinsAndSplitsFixtureOneRoot = [
             exist: true
         }
     }
-];
+]

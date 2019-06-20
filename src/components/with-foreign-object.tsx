@@ -1,10 +1,10 @@
-import * as React from "react";
+import * as React from "react"
 
 interface WithForeignObjectProps {
-    width: number;
-    height: number;
-    x: number;
-    y: number;
+    width: number
+    height: number
+    x: number
+    y: number
 }
 
 export const withForeignObject = <P extends Object>(
@@ -25,4 +25,4 @@ export const withForeignObject = <P extends Object>(
     >
         <WrappedSVGComponent {...props as P} />
     </foreignObject>
-);
+)

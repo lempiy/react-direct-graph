@@ -1,0 +1,29 @@
+plugins:
+  similar-code:
+    enabled: true
+    config:
+      threshold: 60
+  duplication:
+    enabled: true
+    config:
+      threshold: 60
+  method-lines:
+    enabled: true
+    config:
+      threshold: 30
+exclude_patterns:
+  - "**/test.ts"
+  - "**/*.test.ts"
+  - "config/"
+  - "db/"
+  - "dist/"
+  - "features/"
+  - "**/node_modules/"
+  - "script/"
+  - "**/spec/"
+  - "**/test/"
+  - "**/tests/"
+  - "Tests/"
+  - "**/vendor/"
+  - "**/*_test.go"
+  - "**/*.d.ts"

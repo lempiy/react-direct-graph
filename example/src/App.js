@@ -71,7 +71,7 @@ export default class App extends Component {
             const i = inc.next.findIndex(outcomeId => outcomeId === node.id)
             if (!index) inc.next.splice(i, 1, ...node.next)
             else inc.next.splice(i, 1)
-        });
+        })
         const newGraph = [
             ...this.state.graph
         ]
@@ -118,7 +118,7 @@ export default class App extends Component {
         const {
             anchorFrom,
             anchorTo
-        } = n;
+        } = n
         const node = this.state.graph.find(n => n.id === anchorTo)
         const income = this.state.graph.find(n => n.id === anchorFrom)
         return {

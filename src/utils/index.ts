@@ -12,23 +12,23 @@ export const getVectorDirection = (
     y2: number
 ): VectorDirection => {
     if (y1 === y2) {
-        if (x1 < x2) return VectorDirection.Right;
-        else return VectorDirection.Left;
+        if (x1 < x2) return VectorDirection.Right
+        else return VectorDirection.Left
     } else {
-        if (y1 < y2) return VectorDirection.Bottom;
-        else return VectorDirection.Top;
+        if (y1 < y2) return VectorDirection.Bottom
+        else return VectorDirection.Top
     }
-};
+}
 
 export const getCellCenter = (
     cellSize: number,
     cellX: number,
     cellY: number
 ): number[] => {
-    const x = cellX * cellSize + cellSize * 0.5;
-    const y = cellY * cellSize + cellSize * 0.5;
-    return [x, y];
-};
+    const x = cellX * cellSize + cellSize * 0.5
+    const y = cellY * cellSize + cellSize * 0.5
+    return [x, y]
+}
 
 export const getCellEntry = (
     direction: VectorDirection,
@@ -39,20 +39,20 @@ export const getCellEntry = (
 ): number[] => {
     switch (direction) {
         case VectorDirection.Top:
-            var [x] = getCellCenter(cellSize, cellX, cellY);
-            var y = cellY * cellSize + padding;
-            return [x, y];
+            var [x] = getCellCenter(cellSize, cellX, cellY)
+            var y = cellY * cellSize + padding
+            return [x, y]
         case VectorDirection.Bottom:
-            var [x] = getCellCenter(cellSize, cellX, cellY);
-            var y = cellY * cellSize + (cellSize - padding);
-            return [x, y];
+            var [x] = getCellCenter(cellSize, cellX, cellY)
+            var y = cellY * cellSize + (cellSize - padding)
+            return [x, y]
         case VectorDirection.Right:
-            var [, y] = getCellCenter(cellSize, cellX, cellY);
-            var x = cellX * cellSize + (cellSize - padding);
-            return [x, y];
+            var [, y] = getCellCenter(cellSize, cellX, cellY)
+            var x = cellX * cellSize + (cellSize - padding)
+            return [x, y]
         case VectorDirection.Left:
-            var [, y] = getCellCenter(cellSize, cellX, cellY);
-            var x = cellX * cellSize + padding;
-            return [x, y];
+            var [, y] = getCellCenter(cellSize, cellX, cellY)
+            var x = cellX * cellSize + padding
+            return [x, y]
     }
-};
+}

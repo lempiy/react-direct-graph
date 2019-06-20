@@ -117,4 +117,4 @@ export default [{
             exist: true
         }
     }
-];
+]

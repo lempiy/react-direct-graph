@@ -345,6 +345,7 @@ var Matrix = /** @class */ (function () {
     return Matrix;
 }());
 
+var isMultiple = function (obj, id) { return obj[id] && obj[id].length > 1; };
 /**
  * @class GraphStruct
  * Frame parent-class to simplify graph
@@ -369,9 +370,8 @@ var GraphStruct = /** @class */ (function () {
         this._nodesMap = {};
         this._list = list;
         list.forEach(function (node) {
-            if (_this._nodesMap[node.id]) {
-                throw new Error("Duplicate node id " + node.id);
-            }
+            if (_this._nodesMap[node.id])
+                throw new Error("Duplicate id " + node.id);
             _this._nodesMap[node.id] = node;
             node.next.forEach(function (outcomeId) {
                 _this._incomesByNodeIdMap[outcomeId] = _this._incomesByNodeIdMap[outcomeId]
@@ -402,31 +402,36 @@ var GraphStruct = /** @class */ (function () {
      * @returns type of the node
      */
     GraphStruct.prototype.nodeType = function (id) {
-        if (this.isRoot(id) && this.isSplit(id))
-            return NodeType.RootSplit;
-        if (this.isRoot(id))
-            return NodeType.RootSimple;
-        if (this.isSplit(id))
-            return NodeType.Split;
-        if (this.isJoin(id))
-            return NodeType.Join;
-        return NodeType.Simple;
+        var nodeType = NodeType.Simple;
+        switch (true) {
+            case (this.isRoot(id) && this.isSplit(id)):
+                nodeType = NodeType.RootSplit;
+                break;
+            case (this.isRoot(id)):
+                nodeType = NodeType.RootSimple;
+                break;
+            case (this.isSplit(id)):
+                nodeType = NodeType.Split;
+                break;
+            case (this.isJoin(id)):
+                nodeType = NodeType.Join;
+                break;
+        }
+        return nodeType;
     };
     /**
      * Whether or node is split
      * @param id id of node
      */
     GraphStruct.prototype.isSplit = function (id) {
-        return (this._outcomesByNodeIdMap[id] &&
-            this._outcomesByNodeIdMap[id].length > 1);
+        return isMultiple(this._outcomesByNodeIdMap, id);
     };
     /**
      * Whether or node is join
      * @param id id of node
      */
     GraphStruct.prototype.isJoin = function (id) {
-        return (this._incomesByNodeIdMap[id] &&
-            this._incomesByNodeIdMap[id].length > 1);
+        return isMultiple(this._incomesByNodeIdMap, id);
     };
     /**
      * Whether or node is root
@@ -547,51 +552,91 @@ var Graph = /** @class */ (function (_super) {
         return this._insertOrSkipNodeOnMatrix(item, state, false);
     };
     /**
+     * Insert outcomes of split node
+     * @param item item to handle
+     * @param state current state of iteration
+     */
+    Graph.prototype._insertSplitOutcomes = function (item, state, levelQueue) {
+        var _this = this;
+        var queue = state.queue;
+        var outcomes = this.outcomes(item.id);
+        // first will be on the same y level as parent split
+        var firstOutcomeId = outcomes.shift();
+        if (!firstOutcomeId)
+            throw new Error("Split \"" + item.id + "\" has no outcomes");
+        var first = this.node(firstOutcomeId);
+        queue.add(item.id, levelQueue, {
+            id: first.id,
+            next: first.next,
+            payload: first.payload
+        });
+        // rest will create anchor with shift down by one
+        outcomes.forEach(function (outcomeId) {
+            state.y++;
+            var id = item.id + "-" + outcomeId;
+            _this._insertOrSkipNodeOnMatrix({
+                id: id,
+                anchorType: AnchorType.Split,
+                anchorFrom: item.id,
+                anchorTo: outcomeId,
+                isAnchor: true,
+                renderIncomes: [item.id],
+                passedIncomes: [item.id],
+                payload: item.payload,
+                next: [outcomeId]
+            }, state, true);
+            queue.add(id, levelQueue, __assign({}, _this.node(outcomeId)));
+        });
+    };
+    /**
      * Function to handle split nodes
      * @param item item to handle
      * @param state current state of iteration
      * @param levelQueue buffer subqueue of iteration
      */
     Graph.prototype._handleSplitNode = function (item, state, levelQueue) {
-        var _this = this;
-        var queue = state.queue;
         var isInserted = this._processOrSkipNodeOnMatrix(item, state);
         if (isInserted) {
-            var outcomes = this.outcomes(item.id);
-            // first will be on the same y level as parent split
-            var firstOutcomeId = outcomes.shift();
-            if (!firstOutcomeId)
-                throw new Error("Split \"" + item.id + "\" has no outcomes");
-            var first = this.node(firstOutcomeId);
-            queue.add(item.id, levelQueue, {
-                id: first.id,
-                next: first.next,
-                payload: first.payload
-            });
-            // rest will create anchor with shift down by one
-            outcomes.forEach(function (outcomeId) {
-                state.y++;
-                var id = item.id + "-" + outcomeId;
-                _this._insertOrSkipNodeOnMatrix({
-                    id: id,
-                    anchorType: AnchorType.Split,
-                    anchorFrom: item.id,
-                    anchorTo: outcomeId,
-                    isAnchor: true,
-                    renderIncomes: [item.id],
-                    passedIncomes: [item.id],
-                    payload: item.payload,
-                    next: [outcomeId]
-                }, state, true);
-                var out = _this.node(outcomeId);
-                queue.add(id, levelQueue, {
-                    id: out.id,
-                    next: out.next,
-                    payload: out.payload
-                });
-            });
+            this._insertSplitOutcomes(item, state, levelQueue);
         }
         return isInserted;
+    };
+    /**
+     * Insert incomes of join node
+     * @param item item to handle
+     * @param state current state of iteration
+     */
+    Graph.prototype._insertJoinIncomes = function (item, state, levelQueue) {
+        var _this = this;
+        var mtx = state.mtx, queue = state.queue;
+        var incomes = item.passedIncomes;
+        var lowestY = this._getLowestYAmongIncomes(item, mtx);
+        incomes.forEach(function (incomeId) {
+            var point = mtx.find(function (item) { return item.id === incomeId; });
+            if (!point)
+                throw new Error("Income " + incomeId + " not found on matrix");
+            var y = point[1];
+            if (lowestY === y) {
+                item.renderIncomes.push(incomeId);
+                return;
+            }
+            state.y = y;
+            var id = incomeId + "-" + item.id;
+            item.renderIncomes.push(id);
+            _this._insertOrSkipNodeOnMatrix({
+                id: id,
+                anchorType: AnchorType.Join,
+                anchorFrom: incomeId,
+                anchorTo: item.id,
+                isAnchor: true,
+                renderIncomes: [incomeId],
+                passedIncomes: [incomeId],
+                payload: item.payload,
+                next: [item.id]
+            }, state, false);
+        });
+        queue.add.apply(queue, [item.id,
+            levelQueue].concat(this.getOutcomesArray(item.id)));
     };
     /**
      * Function to handle join nodes
@@ -600,8 +645,7 @@ var Graph = /** @class */ (function (_super) {
      * @param levelQueue buffer subqueue of iteration
      */
     Graph.prototype._handleJoinNode = function (item, state, levelQueue) {
-        var _this = this;
-        var queue = state.queue, mtx = state.mtx;
+        var queue = state.queue;
         var isInserted = false;
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
@@ -610,34 +654,7 @@ var Graph = /** @class */ (function (_super) {
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             item.renderIncomes = [];
             if (isInserted) {
-                var incomes = item.passedIncomes;
-                var lowestY_1 = this._getLowestYAmongIncomes(item, mtx);
-                incomes.forEach(function (incomeId) {
-                    var point = mtx.find(function (item) { return item.id === incomeId; });
-                    if (!point)
-                        throw new Error("Income " + incomeId + " not found on matrix");
-                    var y = point[1];
-                    if (lowestY_1 === y) {
-                        item.renderIncomes.push(incomeId);
-                        return;
-                    }
-                    state.y = y;
-                    var id = incomeId + "-" + item.id;
-                    item.renderIncomes.push(id);
-                    _this._insertOrSkipNodeOnMatrix({
-                        id: id,
-                        anchorType: AnchorType.Join,
-                        anchorFrom: incomeId,
-                        anchorTo: item.id,
-                        isAnchor: true,
-                        renderIncomes: [incomeId],
-                        passedIncomes: [incomeId],
-                        payload: item.payload,
-                        next: [item.id]
-                    }, state, false);
-                });
-                queue.add.apply(queue, [item.id,
-                    levelQueue].concat(this.getOutcomesArray(item.id)));
+                this._insertJoinIncomes(item, state, levelQueue);
             }
         }
         return isInserted;
@@ -672,6 +689,54 @@ var Graph = /** @class */ (function (_super) {
         });
     };
     /**
+     * Iterate over one level of graph
+     * starting from queue top item
+     */
+    Graph.prototype._traverseLevel = function (iterations, state) {
+        var mtx = state.mtx, queue = state.queue;
+        var levelQueue = queue.drain();
+        while (levelQueue.length) {
+            iterations++;
+            var item = levelQueue.shift();
+            if (!item)
+                throw new Error("Cannot shift from buffer queue");
+            switch (this.nodeType(item.id)) {
+                case NodeType.RootSimple:
+                    // find free column and fallthrough
+                    state.y = mtx.getFreeRowForColumn(0);
+                case NodeType.Simple:
+                    this._handleSimpleNode(item, state, levelQueue);
+                    break;
+                case NodeType.RootSplit:
+                    // find free column and fallthrough
+                    state.y = mtx.getFreeRowForColumn(0);
+                case NodeType.Split:
+                    this._handleSplitNode(item, state, levelQueue);
+                    break;
+                case NodeType.Join:
+                    this._handleJoinNode(item, state, levelQueue);
+                    break;
+            }
+            if (iterations > MAX_ITERATIONS) {
+                throw new Error("Infinite loop");
+            }
+        }
+        return iterations;
+    };
+    /**
+     * Iterate over graph
+     * starting from queue root items
+     */
+    Graph.prototype._traverseList = function (state) {
+        var _safe = 0;
+        var mtx = state.mtx, queue = state.queue;
+        while (queue.length) {
+            _safe = this._traverseLevel(_safe, state);
+            state.x++;
+        }
+        return mtx;
+    };
+    /**
      * traverse main method to get coordinates matrix from graph
      * @returns 2D matrix containing all nodes and anchors
      */
@@ -688,40 +753,10 @@ var Graph = /** @class */ (function (_super) {
                 throw new Error("No roots in graph");
             return state.mtx;
         }
-        var _safe = 0;
         var mtx = state.mtx, queue = state.queue;
         queue.add.apply(queue, [null,
             null].concat(roots.map(function (r) { return ({ id: r.id, payload: r.payload, next: r.next }); })));
-        while (queue.length) {
-            var levelQueue = queue.drain();
-            while (levelQueue.length) {
-                _safe++;
-                var item = levelQueue.shift();
-                if (!item)
-                    throw new Error("Cannot shift from buffer queue");
-                switch (this.nodeType(item.id)) {
-                    case NodeType.RootSimple:
-                        // find free column and fallthrough
-                        state.y = mtx.getFreeRowForColumn(0);
-                    case NodeType.Simple:
-                        this._handleSimpleNode(item, state, levelQueue);
-                        break;
-                    case NodeType.RootSplit:
-                        // find free column and fallthrough
-                        state.y = mtx.getFreeRowForColumn(0);
-                    case NodeType.Split:
-                        this._handleSplitNode(item, state, levelQueue);
-                        break;
-                    case NodeType.Join:
-                        this._handleJoinNode(item, state, levelQueue);
-                        break;
-                }
-                if (_safe > MAX_ITERATIONS) {
-                    throw new Error("Infinite loop");
-                }
-            }
-            state.x++;
-        }
+        this._traverseList(state);
         return mtx;
     };
     return Graph;
@@ -786,6 +821,10 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
             return "#008c15";
         return "#193772";
     };
+    DefaultNodeIcon.prototype.renderText = function (id) {
+        return (React.createElement("g", { fill: "#ffffff", stroke: "#ffffff" },
+            React.createElement("text", { strokeWidth: "1", x: "0", y: "0", dx: "26", dy: "30", textAnchor: "middle", fontSize: "14px" }, id)));
+    };
     DefaultNodeIcon.prototype.render = function () {
         var _a = this.props, node = _a.node, incomes = _a.incomes;
         return (React.createElement("svg", { version: "1.1", x: "0px", y: "0px", viewBox: "0 0 52 52" },
@@ -794,8 +833,7 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
                         fill: this.getColor(node, incomes),
                         stroke: this.getColor(node, incomes)
                     }, d: "M40.824,52H11.176C5.003,52,0,46.997,0,40.824V11.176C0,5.003,5.003,0,11.176,0h29.649   C46.997,0,52,5.003,52,11.176v29.649C52,46.997,46.997,52,40.824,52z" }),
-                React.createElement("g", { fill: "#ffffff", stroke: "#ffffff" },
-                    React.createElement("text", { strokeWidth: "1", x: "0", y: "0", dx: "26", dy: "30", textAnchor: "middle", fontSize: "14px" }, node.id)))));
+                this.renderText(node.id))));
     };
     return DefaultNodeIcon;
 }(React.Component));
@@ -863,15 +901,12 @@ var GraphElement = /** @class */ (function (_super) {
     GraphElement.prototype.getNodeHandlers = function () {
         var _a = this.props, node = _a.node, incomes = _a.incomes, onNodeClick = _a.onNodeClick, onNodeMouseEnter = _a.onNodeMouseEnter, onNodeMouseLeave = _a.onNodeMouseLeave;
         var handlers = {};
-        if (onNodeClick) {
+        if (onNodeClick)
             handlers.onClick = this.wrapEventHandler(onNodeClick, node, incomes);
-        }
-        if (onNodeMouseEnter) {
+        if (onNodeMouseEnter)
             handlers.onMouseEnter = this.wrapEventHandler(onNodeMouseEnter, node, incomes);
-        }
-        if (onNodeMouseLeave) {
+        if (onNodeMouseLeave)
             handlers.onMouseLeave = this.wrapEventHandler(onNodeMouseLeave, node, incomes);
-        }
         return handlers;
     };
     GraphElement.prototype.renderNode = function () {
@@ -885,17 +920,14 @@ var GraphElement = /** @class */ (function (_super) {
     GraphElement.prototype.getLineHandlers = function (node, income) {
         var _a = this.props, onEdgeClick = _a.onEdgeClick, onEdgeMouseEnter = _a.onEdgeMouseEnter, onEdgeMouseLeave = _a.onEdgeMouseLeave;
         var handlers = {};
-        if (onEdgeClick) {
+        if (onEdgeClick)
             handlers.onClick = this.wrapEventHandler(onEdgeClick, node, [
                 income
             ]);
-        }
-        if (onEdgeMouseEnter) {
+        if (onEdgeMouseEnter)
             handlers.onMouseEnter = this.wrapEventHandler(onEdgeMouseEnter, node, [income]);
-        }
-        if (onEdgeMouseLeave) {
+        if (onEdgeMouseLeave)
             handlers.onMouseLeave = this.wrapEventHandler(onEdgeMouseLeave, node, [income]);
-        }
         return handlers;
     };
     GraphElement.prototype.renderLines = function () {
@@ -931,10 +963,14 @@ var Graph$1 = /** @class */ (function (_super) {
         };
         return _this;
     }
-    Graph.prototype.render = function () {
+    Graph.prototype.renderElements = function () {
         var _a = this.props, nodesMap = _a.nodesMap, cellSize = _a.cellSize, padding = _a.padding, widthInCells = _a.widthInCells, heightInCells = _a.heightInCells, restProps = __rest(_a, ["nodesMap", "cellSize", "padding", "widthInCells", "heightInCells"]);
         var elements = this.getNodeElementInputs(nodesMap);
-        return (React.createElement("svg", { version: "1", width: widthInCells * cellSize, height: heightInCells * cellSize }, elements.map(function (props) { return (React.createElement(GraphElement, __assign({ key: props.node.id, cellSize: cellSize, padding: padding }, props, restProps))); })));
+        return (elements.map(function (props) { return (React.createElement(GraphElement, __assign({ key: props.node.id, cellSize: cellSize, padding: padding }, props, restProps))); }));
+    };
+    Graph.prototype.render = function () {
+        var _a = this.props, cellSize = _a.cellSize, widthInCells = _a.widthInCells, heightInCells = _a.heightInCells;
+        return (React.createElement("svg", { version: "1", width: widthInCells * cellSize, height: heightInCells * cellSize }, this.renderElements()));
     };
     return Graph;
 }(React.Component));
