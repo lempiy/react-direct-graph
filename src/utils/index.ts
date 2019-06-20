@@ -5,19 +5,23 @@ export enum VectorDirection {
     Left = "left"
 }
 
+const getXVertexDirection = (x1:number, x2: number): VectorDirection => {
+    return x1 < x2 ? VectorDirection.Right : VectorDirection.Left
+}
+
+const getYVertexDirection = (y1:number, y2: number): VectorDirection => {
+    return y1 < y2 ? VectorDirection.Bottom : VectorDirection.Top
+}
+
 export const getVectorDirection = (
     x1: number,
     y1: number,
     x2: number,
     y2: number
 ): VectorDirection => {
-    if (y1 === y2) {
-        if (x1 < x2) return VectorDirection.Right
-        else return VectorDirection.Left
-    } else {
-        if (y1 < y2) return VectorDirection.Bottom
-        else return VectorDirection.Top
-    }
+    return y1 === y2 ?
+        getXVertexDirection(x1, x2) : 
+        getYVertexDirection(y1, y2)
 }
 
 export const getCellCenter = (
