@@ -5,11 +5,13 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
+        "ajv": "^6.10.0",
         "prop-types": "^15.6.2",
         "react": "^16.4.1",
+        "react-direct-graph": "file:..",
         "react-dom": "^16.4.1",
         "react-scripts": "^1.1.4",
-        "react-direct-graph": "file:.."
+        "react-syntax-highlighter": "^10.3.0"
     },
     "scripts": {
         "start": "react-scripts start",

@@ -608,10 +608,10 @@ var Graph = /** @class */ (function (_super) {
         var incomes = item.passedIncomes;
         var lowestY = this._getLowestYAmongIncomes(item, mtx);
         incomes.forEach(function (incomeId) {
-            var point = mtx.find(function (item) { return item.id === incomeId; });
-            if (!point)
-                throw new Error("Income " + incomeId + " not found on matrix");
-            var y = point[1];
+            var p = mtx.find(function (item) { return item.id === incomeId; });
+            if (!p)
+                throw Error("Income " + incomeId + " not found");
+            var y = p[1];
             if (lowestY === y) {
                 item.renderIncomes.push(incomeId);
                 return;
@@ -774,19 +774,16 @@ var VectorDirection;
     VectorDirection["Right"] = "right";
     VectorDirection["Left"] = "left";
 })(VectorDirection || (VectorDirection = {}));
+var getXVertexDirection = function (x1, x2) {
+    return x1 < x2 ? VectorDirection.Right : VectorDirection.Left;
+};
+var getYVertexDirection = function (y1, y2) {
+    return y1 < y2 ? VectorDirection.Bottom : VectorDirection.Top;
+};
 var getVectorDirection = function (x1, y1, x2, y2) {
-    if (y1 === y2) {
-        if (x1 < x2)
-            return VectorDirection.Right;
-        else
-            return VectorDirection.Left;
-    }
-    else {
-        if (y1 < y2)
-            return VectorDirection.Bottom;
-        else
-            return VectorDirection.Top;
-    }
+    return y1 === y2 ?
+        getXVertexDirection(x1, x2) :
+        getYVertexDirection(y1, y2);
 };
 var getCellCenter = function (cellSize, cellX, cellY) {
     var x = cellX * cellSize + cellSize * 0.5;
