@@ -4,6 +4,10 @@
 
 > React component for drawing direct graphs with rectangular (non-curve) edge
 
+## Examples
+
+[Samples with code and preview](https://lempiy.github.io/react-direct-graph/)
+
 ## Install
 
 ```bash
@@ -12,68 +16,73 @@ npm install --save react-direct-graph
 
 ## Usage
 
-```tsx
-import * as React from "react";
+```jsx
+import React, { Component } from "react";
 
 import DirectGraph from "react-direct-graph";
-
-const cellSize = 150;
-const padding = cellSize * 0.25;
 
 const graph = [
     {
         id: "A",
-        next: ["B"],
-        payload: {
-            any: true
-        }
-    },
-    {
-        id: "U",
-        next: ["G"],
-        payload: {
-            any: true
-        }
+        next: ["B"]
     },
     {
         id: "B",
-        next: ["C", "D", "E", "F"],
-        payload: {
-            any: true
-        }
+        next: ["C", "D", "E"]
     },
     {
         id: "C",
-        next: [],
-        payload: {
-            any: true
-        }
+        next: ["F"]
     },
     {
         id: "D",
-        next: [],
-        payload: {
-            any: true
-        }
+        next: ["J"]
     },
     {
         id: "E",
-        next: [],
-        payload: {
-            any: true
-        }
+        next: ["J"]
+    },
+    {
+        id: "J",
+        next: ["I"]
+    },
+    {
+        id: "I",
+        next: ["H"]
     },
     {
         id: "F",
-        next: [],
-        payload: {
-            any: true
-        }
+        next: ["K"]
+    },
+    {
+        id: "K",
+        next: ["L"]
+    },
+    {
+        id: "H",
+        next: ["L"]
+    },
+    {
+        id: "L",
+        next: ["P"]
+    },
+    {
+        id: "P",
+        next: ["M", "N"]
+    },
+    {
+        id: "M",
+        next: []
+    },
+    {
+        id: "N",
+        next: []
     }
 ];
 
-class Example extends React.Component {
+export class ExampleBasic extends Component {
     render() {
+        const { cellSize, padding } = this.props;
         return (
             <DirectGraph list={graph} cellSize={cellSize} padding={padding} />
         );
