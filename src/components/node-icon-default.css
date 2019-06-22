@@ -1,0 +1,23 @@
+.nodeOrange path {
+    fill: #e25300;
+    stroke: #e25300;
+}
+
+.nodeGreen path {
+    fill: #008c15;
+    stroke: #008c15;
+}
+
+.nodeBlue path {
+    fill: #193772;
+    stroke: #193772;
+}
+
+.nodeDefaultIcon text {
+    font-size: 14px;
+}
+
+.nodeDefaultIconGroup g {
+    fill: #ffffff;
+    stroke: #ffffff;
+}

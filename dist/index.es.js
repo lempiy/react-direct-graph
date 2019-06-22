@@ -811,30 +811,58 @@ var getCellEntry = function (direction, cellSize, padding, cellX, cellY) {
     }
 };
 
+function styleInject(css, ref) {
+  if ( ref === void 0 ) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') { return; }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css = ".node-icon-default_nodeOrange__2pzZe path {\n    fill: #e25300;\n    stroke: #e25300;\n}\n\n.node-icon-default_nodeGreen__2fWrs path {\n    fill: #008c15;\n    stroke: #008c15;\n}\n\n.node-icon-default_nodeBlue__2rASh path {\n    fill: #193772;\n    stroke: #193772;\n}\n\n.node-icon-default_nodeDefaultIcon__3r8qv text {\n    font-size: 14px;\n}\n\n.node-icon-default_nodeDefaultIconGroup__2mmJl g {\n    fill: #ffffff;\n    stroke: #ffffff;\n}\n";
+var styles = {"nodeOrange":"node-icon-default_nodeOrange__2pzZe","nodeGreen":"node-icon-default_nodeGreen__2fWrs","nodeBlue":"node-icon-default_nodeBlue__2rASh","nodeDefaultIcon":"node-icon-default_nodeDefaultIcon__3r8qv","nodeDefaultIconGroup":"node-icon-default_nodeDefaultIconGroup__2mmJl"};
+styleInject(css);
+
 var DefaultNodeIcon = /** @class */ (function (_super) {
     __extends(DefaultNodeIcon, _super);
     function DefaultNodeIcon() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    DefaultNodeIcon.prototype.getColor = function (node, incomes) {
+    DefaultNodeIcon.prototype.getClass = function (node, incomes) {
         if (incomes && incomes.length > 1)
-            return "#e25300";
+            return styles.nodeOrange;
         if (node.next && node.next.length > 1)
-            return "#008c15";
-        return "#193772";
+            return styles.nodeGreen;
+        return styles.nodeBlue;
     };
     DefaultNodeIcon.prototype.renderText = function (id) {
-        return (createElement("g", { fill: "#ffffff", stroke: "#ffffff" },
-            createElement("text", { strokeWidth: "1", x: "0", y: "0", dx: "26", dy: "30", textAnchor: "middle", fontSize: "14px" }, id)));
+        return (createElement("g", null,
+            createElement("text", { strokeWidth: "1", x: "0", y: "0", dx: "26", dy: "30", textAnchor: "middle" }, id)));
     };
     DefaultNodeIcon.prototype.render = function () {
         var _a = this.props, node = _a.node, incomes = _a.incomes;
-        return (createElement("svg", { version: "1.1", x: "0px", y: "0px", viewBox: "0 0 52 52" },
-            createElement("g", null,
-                createElement("path", { style: {
-                        fill: this.getColor(node, incomes),
-                        stroke: this.getColor(node, incomes)
-                    }, d: "M40.824,52H11.176C5.003,52,0,46.997,0,40.824V11.176C0,5.003,5.003,0,11.176,0h29.649   C46.997,0,52,5.003,52,11.176v29.649C52,46.997,46.997,52,40.824,52z" }),
+        return (createElement("svg", { version: "1.1", x: "0px", y: "0px", viewBox: "0 0 52 52", className: styles.nodeDefaultIcon },
+            createElement("g", { className: "node-icon-default " + styles.nodeDefaultIconGroup + " " + this.getClass(node, incomes) },
+                createElement("path", { d: "M40.824,52H11.176C5.003,52,0,46.997,0,40.824V11.176C0,5.003,5.003,0,11.176,0h29.649   C46.997,0,52,5.003,52,11.176v29.649C52,46.997,46.997,52,40.824,52z" }),
                 this.renderText(node.id))));
     };
     return DefaultNodeIcon;

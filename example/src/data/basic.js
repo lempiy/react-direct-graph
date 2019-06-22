@@ -1,0 +1,37 @@
+export default [{
+        id: 'A',
+        next: ['B'],
+    }, {
+        id: 'B',
+        next: ['C', 'D', 'E'],
+    }, {
+        id: 'C',
+        next: ['F'],
+    }, {
+        id: 'D',
+        next: ['J']
+    },
+    {
+        id: 'E',
+        next: ['J']
+    }, {
+        id: 'J',
+        next: ['I']
+    },
+    {
+        id: 'I',
+        next: ['H']
+    },
+    {
+        id: 'F',
+        next: 'K'
+    },
+    {
+        id: 'K',
+        next: []
+    },
+    {
+        id: 'H',
+        next: []
+    }
+]
