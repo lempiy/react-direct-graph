@@ -1,5 +1,5 @@
-export const exampleEditCode = 
-`import React, {
+export const exampleEditCode =
+    `import React, {
     Component
 } from 'react'
 
@@ -10,7 +10,10 @@ export class ExampleEdit extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            graph,
+            graph: graph.map(n => ({
+                ...n,
+                next: [...n.next]
+            })),
             inSelect: false,
             selected: []
         }

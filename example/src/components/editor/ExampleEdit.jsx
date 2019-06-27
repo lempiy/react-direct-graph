@@ -1,13 +1,13 @@
 import React, { Component } from "react";
 
 import DirectGraph from "react-direct-graph";
-import graph from "../../data/graph";
+import graph from "../../data/graph.json";
 
 export class ExampleEdit extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            graph,
+            graph: graph.map(n => ({ ...n, next: [...n.next] })),
             inSelect: false,
             selected: []
         };

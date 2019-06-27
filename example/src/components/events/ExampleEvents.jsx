@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 
 import DirectGraph from "react-direct-graph";
-import graph from "../../data/graph";
+import graph from "../../data/graph.json";
 
 export class ExampleEvents extends Component {
     constructor(props) {
@@ -54,7 +54,7 @@ export class ExampleEvents extends Component {
             <Fragment>
                 <p>{this.state.event}</p>
                 <DirectGraph
-                    list={graph}
+                    list={graph.map(n => ({ ...n, next: [...n.next] }))}
                     cellSize={cellSize}
                     padding={padding}
                     onNodeClick={this.onNodeClick}

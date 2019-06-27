@@ -53,7 +53,12 @@ export class ExampleEvents extends Component {
             <Fragment>
                 <p>{this.state.event}</p>
                 <DirectGraph
-                    list={graph}
+                    list = {
+                        graph.map(n => ({
+                            ...n,
+                            next: [...n.next]
+                        }))
+                    }
                     cellSize={cellSize}
                     padding={padding}
                     onNodeClick={this.onNodeClick}
