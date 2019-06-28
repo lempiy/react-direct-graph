@@ -79,6 +79,7 @@ var AnchorType;
     AnchorType["Join"] = "JOIN";
     AnchorType["Split"] = "SPLIT";
 })(AnchorType || (AnchorType = {}));
+//# sourceMappingURL=node.interface.js.map
 
 /**
  * @class TraverseQueue
@@ -168,6 +169,7 @@ var TraverseQueue = /** @class */ (function () {
     };
     return TraverseQueue;
 }());
+//# sourceMappingURL=traverse-queue.class.js.map
 
 /**
  * @class Matrix
@@ -340,8 +342,16 @@ var Matrix = /** @class */ (function () {
     };
     return Matrix;
 }());
+//# sourceMappingURL=matrix.class.js.map
 
-var isMultiple = function (obj, id) { return obj[id] && obj[id].length > 1; };
+var isMultiple = function (obj, id) {
+    return obj[id] && obj[id].length > 1;
+};
+function union(setA, setB) {
+    var _union = new Set(setA);
+    setB.forEach(function (elem) { return _union.add(elem); });
+    return _union;
+}
 /**
  * @class GraphStruct
  * Frame parent-class to simplify graph
@@ -353,6 +363,7 @@ var GraphStruct = /** @class */ (function () {
         this._nodesMap = {};
         this._incomesByNodeIdMap = {};
         this._outcomesByNodeIdMap = {};
+        this._loopsByNodeIdMap = {};
         this.applyList(list);
     }
     /**
@@ -360,29 +371,56 @@ var GraphStruct = /** @class */ (function () {
      * @param list input linked list of nodes
      */
     GraphStruct.prototype.applyList = function (list) {
-        var _this = this;
         this._incomesByNodeIdMap = {};
         this._outcomesByNodeIdMap = {};
         this._nodesMap = {};
+        this._loopsByNodeIdMap = {};
         this._list = list;
-        list.forEach(function (node) {
-            if (_this._nodesMap[node.id])
+        this._nodesMap = list.reduce(function (map, node) {
+            if (map[node.id])
                 throw new Error("Duplicate id " + node.id);
-            _this._nodesMap[node.id] = node;
-            node.next.forEach(function (outcomeId) {
-                _this._incomesByNodeIdMap[outcomeId] = _this._incomesByNodeIdMap[outcomeId]
-                    ? _this._incomesByNodeIdMap[outcomeId].concat([node.id]) : [node.id];
-                var incomes = _this._incomesByNodeIdMap[outcomeId];
-                if (new Set(incomes).size !== incomes.length) {
-                    throw new Error("Duplicate incomes for node id " + node.id);
-                }
-            });
-            _this._outcomesByNodeIdMap[node.id] = node.next.slice();
-            var outcomes = _this._outcomesByNodeIdMap[node.id];
-            if (new Set(outcomes).size !== outcomes.length) {
-                throw new Error("Duplicate outcomes for node id " + node.id);
+            map[node.id] = node;
+            return map;
+        }, {});
+        this.detectIncomesAndOutcomes();
+    };
+    GraphStruct.prototype.detectIncomesAndOutcomes = function () {
+        var _this = this;
+        this._list.reduce(function (totalSet, node) {
+            if (totalSet.has(node.id))
+                return totalSet;
+            return union(totalSet, _this.traverseVertically(node, new Set(), totalSet));
+        }, new Set());
+        if (Object.values(this._loopsByNodeIdMap).length)
+            console.log(this._loopsByNodeIdMap);
+    };
+    GraphStruct.prototype.traverseVertically = function (node, branchSet, totalSet) {
+        var _this = this;
+        if (branchSet.has(node.id))
+            throw new Error("Duplicate incomes for node id " + node.id);
+        branchSet.add(node.id);
+        totalSet.add(node.id);
+        node.next.forEach(function (outcomeId) {
+            // skip loops which are already detected
+            if (_this.isLoopEdge(node.id, outcomeId))
+                return;
+            // detect loops
+            if (branchSet.has(outcomeId)) {
+                _this._loopsByNodeIdMap[outcomeId] = _this._loopsByNodeIdMap[outcomeId]
+                    ? Array.from(new Set(_this._loopsByNodeIdMap[outcomeId].concat([node.id])))
+                    : [node.id];
+                return;
             }
+            _this._incomesByNodeIdMap[outcomeId] = _this._incomesByNodeIdMap[outcomeId]
+                ? Array.from(new Set(_this._incomesByNodeIdMap[outcomeId].concat([node.id])))
+                : [node.id];
+            _this._outcomesByNodeIdMap[node.id] = _this._outcomesByNodeIdMap[node.id]
+                ? Array.from(new Set(_this._outcomesByNodeIdMap[node.id].concat([outcomeId])))
+                : [outcomeId];
+            totalSet = _this.traverseVertically(_this._nodesMap[outcomeId], new Set(branchSet), totalSet);
+            return;
         });
+        return totalSet;
     };
     /**
      * Get graph roots.
@@ -400,16 +438,16 @@ var GraphStruct = /** @class */ (function () {
     GraphStruct.prototype.nodeType = function (id) {
         var nodeType = NodeType.Simple;
         switch (true) {
-            case (this.isRoot(id) && this.isSplit(id)):
+            case this.isRoot(id) && this.isSplit(id):
                 nodeType = NodeType.RootSplit;
                 break;
-            case (this.isRoot(id)):
+            case this.isRoot(id):
                 nodeType = NodeType.RootSimple;
                 break;
-            case (this.isSplit(id)):
+            case this.isSplit(id):
                 nodeType = NodeType.Split;
                 break;
-            case (this.isJoin(id)):
+            case this.isJoin(id):
                 nodeType = NodeType.Join;
                 break;
         }
@@ -437,12 +475,15 @@ var GraphStruct = /** @class */ (function () {
         return (!this._incomesByNodeIdMap[id] ||
             !this._incomesByNodeIdMap[id].length);
     };
+    GraphStruct.prototype.isLoopEdge = function (nodeId, outcomeId) {
+        return this._loopsByNodeIdMap[outcomeId] && this._loopsByNodeIdMap[outcomeId].includes(nodeId);
+    };
     /**
      * Get outcomes of node by id
      * @param id id of node
      */
     GraphStruct.prototype.outcomes = function (id) {
-        return this._outcomesByNodeIdMap[id];
+        return this._outcomesByNodeIdMap[id] || [];
     };
     /**
      * Get incomes of node by id
@@ -766,6 +807,9 @@ var Graph = /** @class */ (function (_super) {
     };
     return Graph;
 }(GraphStruct));
+//# sourceMappingURL=graph.class.js.map
+
+//# sourceMappingURL=index.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -810,6 +854,7 @@ var getCellEntry = function (direction, cellSize, padding, cellX, cellY) {
             return [x, y];
     }
 };
+//# sourceMappingURL=index.js.map
 
 function styleInject(css, ref) {
   if ( ref === void 0 ) ref = {};
@@ -867,12 +912,14 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
     };
     return DefaultNodeIcon;
 }(Component));
+//# sourceMappingURL=node-icon-default.js.map
 
 var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
     var width = _a.width, height = _a.height, x = _a.x, y = _a.y, props = __rest(_a, ["width", "height", "x", "y"]);
     return (createElement("foreignObject", { x: x, y: y, width: width, height: height, className: "node-icon" },
         createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
+//# sourceMappingURL=with-foreign-object.js.map
 
 var _a;
 function getPointWithResolver(direction, cellSize, padding, item) {
@@ -977,6 +1024,7 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(Component));
+//# sourceMappingURL=element.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);
@@ -1004,6 +1052,9 @@ var Graph$1 = /** @class */ (function (_super) {
     };
     return Graph;
 }(Component));
+//# sourceMappingURL=graph.js.map
+
+//# sourceMappingURL=index.js.map
 
 /**
  * @class DirectGraph
@@ -1030,6 +1081,7 @@ var DirectGraph = /** @class */ (function (_super) {
     };
     return DirectGraph;
 }(Component));
+//# sourceMappingURL=index.js.map
 
 export default DirectGraph;
 //# sourceMappingURL=index.es.js.map

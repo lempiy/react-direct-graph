@@ -7,11 +7,11 @@ export default class App extends Component {
     render() {
         return (
             <main>
-                <Title cellSize={cellSize} padding={padding} />
+                {/* <Title cellSize={cellSize} padding={padding} />
                 <h1>Examples</h1>
                 <Basic />
                 <Custom />
-                <Events />
+                <Events /> */}
                 <Editor />
             </main>
         );

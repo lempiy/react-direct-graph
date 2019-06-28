@@ -3,6 +3,12 @@ import { INodeInput, NodeType } from "./node.interface";
 const isMultiple = (obj: { [id: string]: string[] }, id: string): boolean =>
     obj[id] && obj[id].length > 1;
 
+function union<T>(setA: Set<T>, setB: Set<T>) {
+    var _union = new Set(setA);
+    setB.forEach(elem => _union.add(elem))
+    return _union;
+}
+
 /**
  * @class GraphStruct
  * Frame parent-class to simplify graph
@@ -27,65 +33,57 @@ export class GraphStruct<T> {
         this._nodesMap = {};
         this._loopsByNodeIdMap = {};
         this._list = list;
-        list.forEach(node => {
-            if (this._nodesMap[node.id])
+        this._nodesMap = list.reduce((map, node) => {
+            if (map[node.id])
                 throw new Error(`Duplicate id ${node.id}`);
-            this._nodesMap[node.id] = node;
-            node.next.forEach(outcomeId => {
-                this._incomesByNodeIdMap[outcomeId] = this._incomesByNodeIdMap[
-                    outcomeId
-                ]
-                    ? [...this._incomesByNodeIdMap[outcomeId], node.id]
-                    : [node.id];
-                const incomes = this._incomesByNodeIdMap[outcomeId];
-                if (new Set(incomes).size !== incomes.length) {
-                    throw new Error(`Duplicate incomes for node id ${node.id}`);
-                }
-            });
-            this._outcomesByNodeIdMap[node.id] = [...node.next];
-            const outcomes = this._outcomesByNodeIdMap[node.id];
-            if (new Set(outcomes).size !== outcomes.length) {
-                throw new Error(`Duplicate outcomes for node id ${node.id}`);
-            }
-        });
+            map[node.id] = node;
+            return map
+        }, {});
+        this.detectIncomesAndOutcomes()
     }
     detectIncomesAndOutcomes() {
-        const usedBuffer = {};
+        this._list.reduce((totalSet, node) => {
+            if (totalSet.has(node.id)) return totalSet
+            return union(totalSet, this.traverseVertically(node, new Set(), totalSet))
+        }, new Set<string>())
+        if (Object.values(this._loopsByNodeIdMap).length) console.log(this._loopsByNodeIdMap);
     }
     traverseVertically(
         node: INodeInput<T>,
-        usedBuffer: { [id: string]: INodeInput<T> }
-    ) {
-        if (usedBuffer[node.id])
+        branchSet: Set<string>,
+        totalSet:  Set<string>,
+    ):Set<string> {
+        if (branchSet.has(node.id))
             throw new Error(`Duplicate incomes for node id ${node.id}`);
-        node.next.forEach(outcomeId => {
-            if (usedBuffer[outcomeId]) {
+        branchSet.add(node.id)
+        totalSet.add(node.id)
+        node.next.forEach((outcomeId) => {
+            // skip loops which are already detected
+            if (this.isLoopEdge(node.id, outcomeId)) return
+            // detect loops
+            if (branchSet.has(outcomeId)) {
                 this._loopsByNodeIdMap[outcomeId] = this._loopsByNodeIdMap[
                     outcomeId
                 ]
-                    ? [...this._loopsByNodeIdMap[outcomeId], node.id]
+                    ? Array.from(new Set([...this._loopsByNodeIdMap[outcomeId], node.id]))
                     : [node.id];
                 return;
             }
             this._incomesByNodeIdMap[outcomeId] = this._incomesByNodeIdMap[
                 outcomeId
             ]
-                ? [...this._incomesByNodeIdMap[outcomeId], node.id]
+                ? Array.from(new Set([...this._incomesByNodeIdMap[outcomeId], node.id]))
                 : [node.id];
-            const incomes = this._incomesByNodeIdMap[outcomeId];
-            if (new Set(incomes).size !== incomes.length) {
-                throw new Error(`Duplicate incomes for node id ${node.id}`);
-            }
             this._outcomesByNodeIdMap[node.id] = this._outcomesByNodeIdMap[
                 node.id
             ]
-                ? [...this._outcomesByNodeIdMap[node.id], outcomeId]
+                ? Array.from(new Set([...this._outcomesByNodeIdMap[node.id], outcomeId]))
                 : [outcomeId];
+            totalSet = this.traverseVertically(this._nodesMap[outcomeId], new Set(branchSet), totalSet)
+            return
         });
-        const outcomes = this._outcomesByNodeIdMap[node.id];
-        if (new Set(outcomes).size !== outcomes.length) {
-            throw new Error(`Duplicate outcomes for node id ${node.id}`);
-        }
+        
+        return totalSet
     }
     /**
      * Get graph roots.
@@ -141,12 +139,15 @@ export class GraphStruct<T> {
             !this._incomesByNodeIdMap[id].length
         );
     }
+    private isLoopEdge(nodeId: string, outcomeId: string):boolean {
+        return this._loopsByNodeIdMap[outcomeId] && this._loopsByNodeIdMap[outcomeId].includes(nodeId)
+    }
     /**
      * Get outcomes of node by id
      * @param id id of node
      */
     protected outcomes(id: string): string[] {
-        return this._outcomesByNodeIdMap[id];
+        return this._outcomesByNodeIdMap[id] || [];
     }
     /**
      * Get incomes of node by id
