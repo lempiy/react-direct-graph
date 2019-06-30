@@ -13,6 +13,11 @@
     stroke: #193772;
 }
 
+.nodePurple {
+    fill: #6304a3;
+    stroke: #6304a3;
+}
+
 .nodeDefaultIcon text {
     font-size: 14px;
 }

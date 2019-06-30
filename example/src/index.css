@@ -51,6 +51,7 @@ main>svg:nth-child(3) .node-icon-default path {
     cursor: pointer;
     border-radius: 3px;
     user-select: none;
+    color: #333;
 }
 
 .hide-code {
@@ -61,6 +62,10 @@ main>svg:nth-child(3) .node-icon-default path {
     cursor: pointer;
     border-radius: 3px;
     user-select: none;
+}
+
+.graph-holder {
+    overflow-x: auto;
 }
 
 .hidden {

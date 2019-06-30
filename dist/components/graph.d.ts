@@ -1,6 +1,7 @@
 import * as React from "react";
 import { IMatrixNode } from "../core";
-import { ViewProps } from "./element";
+import { ViewProps as ElementViewProps } from "./element";
+import { ViewProps as PolylineViewProps } from "./polyline";
 export declare type Props<T> = {
     nodesMap: {
         [id: string]: IMatrixNode<T>;
@@ -10,9 +11,9 @@ export declare type Props<T> = {
     widthInCells: number;
     heightInCells: number;
 };
+export declare type ViewProps<T> = ElementViewProps<T> & PolylineViewProps<T>;
 interface INodeElementInput<T> {
     node: IMatrixNode<T>;
-    incomes: IMatrixNode<T>[];
 }
 export declare class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
     getNodeElementInputs: (nodesMap: {

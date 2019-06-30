@@ -39,7 +39,7 @@ export class Example extends Component {
                 <p>
                     <b>Output:</b>
                 </p>
-                {example}
+                <div className="graph-holder">{example}</div>
             </section>
         );
     }

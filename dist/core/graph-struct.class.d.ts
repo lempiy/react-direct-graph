@@ -9,12 +9,15 @@ export declare class GraphStruct<T> {
     private _nodesMap;
     private _incomesByNodeIdMap;
     private _outcomesByNodeIdMap;
+    private _loopsByNodeIdMap;
     constructor(list: INodeInput<T>[]);
     /**
      * Fill graph with new nodes
      * @param list input linked list of nodes
      */
     applyList(list: INodeInput<T>[]): void;
+    detectIncomesAndOutcomes(): void;
+    traverseVertically(node: INodeInput<T>, branchSet: Set<string>, totalSet: Set<string>): Set<string>;
     /**
      * Get graph roots.
      * Roots is nodes without incomes
@@ -41,6 +44,12 @@ export declare class GraphStruct<T> {
      * @param id id of node
      */
     private isRoot;
+    protected isLoopEdge(nodeId: string, outcomeId: string): boolean;
+    /**
+     * Get loops of node by id
+     * @param id id of node
+     */
+    protected loops(id: string): string[];
     /**
      * Get outcomes of node by id
      * @param id id of node

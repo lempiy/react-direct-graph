@@ -7,6 +7,8 @@ export class DefaultNodeIcon<T> extends React.Component<
     GraphNodeIconComponentProps<T>
 > {
     getClass(node: INodeInput<T>, incomes: INodeInput<T>[]): string {
+        if (incomes && incomes.length > 1 && node.next && node.next.length > 1)
+            return styles.nodePurple;
         if (incomes && incomes.length > 1) return styles.nodeOrange;
         if (node.next && node.next.length > 1) return styles.nodeGreen;
         return styles.nodeBlue;

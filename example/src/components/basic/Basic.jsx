@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 
-import { ExampleBasic, exampleBasicCode } from "./";
+import { ExampleBasic } from "./";
 import { Example } from "../Example.jsx";
+
+/* eslint import/no-webpack-loader-syntax: off */
+const exampleBasicCode = require("!!raw-loader!./ExampleBasic.jsx");
 
 const cellSize = 100;
 const padding = cellSize * 0.25;
@@ -19,9 +22,9 @@ export class Basic extends Component {
     render() {
         return (
             <Example
-                code={exampleBasicCode}
+                code={exampleBasicCode.default}
                 example={this.exampleComponent()}
-                title={"Graph Basic"}
+                title={"Basic Example"}
                 description={this.description}
             />
         );

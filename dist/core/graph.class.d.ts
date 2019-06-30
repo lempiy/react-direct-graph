@@ -1,56 +1,14 @@
 import { INodeInput } from "./node.interface";
 import { Matrix } from "./matrix.class";
-import { GraphStruct } from "./graph-struct.class";
+import { GraphMatrix } from "./graph-matrix.class";
 /**
  * @class Graph
- * Main compute class used to transform
+ * Main iteration class used to transform
  * linked list of nodes to coordinate matrix
  */
-export declare class Graph<T> extends GraphStruct<T> {
+export declare class Graph<T> extends GraphMatrix<T> {
     protected _list: INodeInput<T>[];
     constructor(list: INodeInput<T>[]);
-    /**
-     * Check if item has unresolved incomes
-     * @param item item to check
-     */
-    private _joinHasUnresolvedIncomes;
-    /**
-     * Main insertion method - inserts item on matrix using state x and y
-     * or skips if it has collision on current row. Skipping is done
-     * by passing item back to the end of the queue
-     * @param item item to insert
-     * @param state state of current iteration
-     * @param checkCollision whether to check horizontal collision with existing point
-     * on 2D matrix
-     * @returns true if item was inserted false if skipped
-     */
-    private _insertOrSkipNodeOnMatrix;
-    /**
-     * Get all items incomes and find parent Y with the lowest
-     * Y coordinate on the matrix
-     * @param item target item
-     * @param mtx matrix to use as source
-     */
-    private _getLowestYAmongIncomes;
-    /**
-     * Main processing nodes method.
-     * If node has incomes it finds lowest Y among them and
-     * sets state.y as lowest income Y value.
-     * Then inserts item on matrix using state x and y
-     * or skips if it has collision on current column. Skipping is done
-     * by passing item back to the end of the queue
-     * @param item item to insert
-     * @param state state of current iteration
-     * on 2D matrix
-     * @returns true if item was inserted false if skipped
-     */
-    private _processOrSkipNodeOnMatrix;
-    /**
-     * Insert outcomes of split node
-     * @param item item to handle
-     * @param state current state of iteration
-     */
-    private _insertSplitOutcomes;
     /**
      * Function to handle split nodes
      * @param item item to handle
@@ -59,11 +17,12 @@ export declare class Graph<T> extends GraphStruct<T> {
      */
     private _handleSplitNode;
     /**
-     * Insert incomes of join node
+     * Function to handle splitjoin nodes
      * @param item item to handle
      * @param state current state of iteration
+     * @param levelQueue buffer subqueue of iteration
      */
-    private _insertJoinIncomes;
+    private _handleSplitJoinNode;
     /**
      * Function to handle join nodes
      * @param item item to handle
@@ -78,11 +37,6 @@ export declare class Graph<T> extends GraphStruct<T> {
      * @param levelQueue buffer subqueue of iteration
      */
     private _handleSimpleNode;
-    /**
-     * get outcomes inputs helper
-     * @param itemId node id
-     */
-    private getOutcomesArray;
     /**
      * Method to handle single iteration item
      * @param item queue item to process
