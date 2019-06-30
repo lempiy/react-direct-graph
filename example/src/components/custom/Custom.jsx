@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 
-import { ExampleCustom, exampleCustomCode } from "./";
+import { ExampleCustom } from "./";
 import { Example } from "../Example.jsx";
+
+/* eslint import/no-webpack-loader-syntax: off */
+const exampleCustomCode = require("!!raw-loader!./ExampleCustom.jsx");
 
 const cellSize = 100;
 const padding = cellSize * 0.25;
@@ -18,7 +21,7 @@ export class Custom extends Component {
     render() {
         return (
             <Example
-                code={exampleCustomCode}
+                code={exampleCustomCode.default}
                 example={this.exampleComponent()}
                 title={"Graph Custom"}
                 description={this.description}

@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 
-import { ExampleEvents, exampleEventsCode } from ".";
+import { ExampleEvents } from ".";
 import { Example } from "../Example.jsx";
+
+/* eslint import/no-webpack-loader-syntax: off */
+const exampleEventsCode = require("!!raw-loader!./ExampleEvents.jsx");
 
 const cellSize = 100;
 const padding = cellSize * 0.25;
@@ -27,7 +30,7 @@ export class Events extends Component {
     render() {
         return (
             <Example
-                code={exampleEventsCode}
+                code={exampleEventsCode.default}
                 example={this.exampleComponent()}
                 title={"Graph Events"}
                 description={this.description}

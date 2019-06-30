@@ -6,7 +6,8 @@ export enum NodeType {
     RootSplit = "ROOT-SPLIT",
     Simple = "SIMPLE",
     Split = "SPLIT",
-    Join = "JOIN"
+    Join = "JOIN",
+    SplitJoin = "SPLIT-JOIN"
 }
 /**
  * Types of anchors.
@@ -21,22 +22,29 @@ export enum NodeType {
  */
 export enum AnchorType {
     Join = "JOIN",
-    Split = "SPLIT"
+    Split = "SPLIT",
+    Loop = "LOOP"
+}
+
+export enum AnchorMargin {
+    None = "NONE",
+    Left = "LEFT",
+    Right = "RIGHT"
 }
 
 export interface INodeInput<T> {
     /**
      * Unique key for node. Duplicates are not allowed.
      */
-    id: string
+    id: string;
     /**
      * Outcomes of current node. Empty array if node is leaf.
      */
-    next: string[]
+    next: string[];
     /**
      * Payload data to transfer with current node events. Use whatever you want here.
      */
-    payload: T
+    payload: T;
 }
 
 export interface INodeOutput<T> extends INodeInput<T> {
@@ -45,39 +53,43 @@ export interface INodeOutput<T> extends INodeInput<T> {
      * Which is used to draw split and join edges.
      * @default false
      */
-    isAnchor?: boolean
+    isAnchor?: boolean;
     /**
      * Type of anchor. Only exists if isAnchor is true.
      */
-    anchorType?: AnchorType
+    anchorType?: AnchorType;
     /**
      * Id if the anchor income. Only exists if isAnchor is true.
      */
-    anchorFrom?: string
+    anchorFrom?: string;
     /**
      * Id if the anchor outcome. Only exists if isAnchor is true.
      */
-    anchorTo?: string
+    anchorTo?: string;
+    /**
+     * Anchor position inside cell over x axis.
+     */
+    anchorMargin?: AnchorMargin;
     /**
      * First level node incomes passed during travesal. Ignores join
      * anchor. Mostly for tech usage. To recognize rendering parents
      * Use renderIncomes.
      */
-    passedIncomes: string[]
+    passedIncomes: string[];
     /**
      * First level node incomes in rendering context. Can be used for
      * backward travesal. Includes both types of anchors.
      */
-    renderIncomes: string[]
+    renderIncomes: string[];
 }
 
 export interface IMatrixNode<T> extends INodeOutput<T> {
     /**
      * X coordinate of node
      */
-    x: number
+    x: number;
     /**
      * Y coordinate of node
      */
-    y: number
+    y: number;
 }

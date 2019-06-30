@@ -44,7 +44,12 @@ export declare class GraphStruct<T> {
      * @param id id of node
      */
     private isRoot;
-    private isLoopEdge;
+    protected isLoopEdge(nodeId: string, outcomeId: string): boolean;
+    /**
+     * Get loops of node by id
+     * @param id id of node
+     */
+    protected loops(id: string): string[];
     /**
      * Get outcomes of node by id
      * @param id id of node

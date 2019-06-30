@@ -63,6 +63,10 @@ export declare class Matrix<T> {
      */
     find(callback: (item: INodeOutput<T>) => boolean): number[] | null;
     /**
+     * Return point by x, y coordinate
+     */
+    getByCoords(x: number, y: number): INodeOutput<T> | null;
+    /**
      * Paste item to particular cell
      * @param coords x and y coordinates for item
      * @param item item to insert

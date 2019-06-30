@@ -42,10 +42,12 @@ export class ExampleEvents extends Component {
 
     onEdgeMouseEnter = (event, node, incomes) => {
         event.currentTarget.style.stroke = "#f00";
+        event.currentTarget.style.fill = "#f00";
     };
 
     onEdgeMouseLeave = (event, node, incomes) => {
-        event.currentTarget.style.stroke = null;
+        event.currentTarget.style.stroke = "rgb(45, 87, 139)";
+        event.currentTarget.style.fill = "rgb(45, 87, 139)";
     };
 
     render() {

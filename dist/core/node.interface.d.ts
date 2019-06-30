@@ -6,7 +6,8 @@ export declare enum NodeType {
     RootSplit = "ROOT-SPLIT",
     Simple = "SIMPLE",
     Split = "SPLIT",
-    Join = "JOIN"
+    Join = "JOIN",
+    SplitJoin = "SPLIT-JOIN"
 }
 /**
  * Types of anchors.
@@ -21,7 +22,13 @@ export declare enum NodeType {
  */
 export declare enum AnchorType {
     Join = "JOIN",
-    Split = "SPLIT"
+    Split = "SPLIT",
+    Loop = "LOOP"
+}
+export declare enum AnchorMargin {
+    None = "NONE",
+    Left = "LEFT",
+    Right = "RIGHT"
 }
 export interface INodeInput<T> {
     /**
@@ -56,6 +63,10 @@ export interface INodeOutput<T> extends INodeInput<T> {
      * Id if the anchor outcome. Only exists if isAnchor is true.
      */
     anchorTo?: string;
+    /**
+     * Anchor position inside cell over x axis.
+     */
+    anchorMargin?: AnchorMargin;
     /**
      * First level node incomes passed during travesal. Ignores join
      * anchor. Mostly for tech usage. To recognize rendering parents

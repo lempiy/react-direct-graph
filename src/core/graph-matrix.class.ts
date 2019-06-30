@@ -1,0 +1,319 @@
+import {
+    INodeInput,
+    AnchorType,
+    INodeOutput,
+    AnchorMargin
+} from "./node.interface";
+import { TraverseQueue } from "./traverse-queue.class";
+import { Matrix } from "./matrix.class";
+import { GraphStruct } from "./graph-struct.class";
+
+/**
+ * Holds iteration state of the graph
+ */
+interface State<T> {
+    mtx: Matrix<T>;
+    queue: TraverseQueue<T>;
+    x: number;
+    y: number;
+}
+
+interface LoopNode<T> {
+    id: string;
+    node: INodeOutput<T>;
+    coords: number[];
+}
+
+/**
+ * @class GraphMatrix
+ * Compute graph subclass used to interact with matrix
+ */
+export class GraphMatrix<T> extends GraphStruct<T> {
+    protected _list: INodeInput<T>[] = [];
+    constructor(list: INodeInput<T>[]) {
+        super(list);
+    }
+    /**
+     * Check if item has unresolved incomes
+     * @param item item to check
+     */
+    protected _joinHasUnresolvedIncomes(item: INodeOutput<T>) {
+        return item.passedIncomes.length != this.incomes(item.id).length;
+    }
+    /**
+     * Main insertion method - inserts item on matrix using state x and y
+     * or skips if it has collision on current row. Skipping is done
+     * by passing item back to the end of the queue
+     * @param item item to insert
+     * @param state state of current iteration
+     * @param checkCollision whether to check horizontal collision with existing point
+     * on 2D matrix
+     * @returns true if item was inserted false if skipped
+     */
+    private _insertOrSkipNodeOnMatrix(
+        item: INodeOutput<T>,
+        state: State<T>,
+        checkCollision: boolean
+    ) {
+        const { mtx } = state;
+        // if point collides by x vertex, insert new row before y position
+        if (checkCollision && mtx.hasHorizontalCollision([state.x, state.y])) {
+            mtx.insertRowBefore(state.y);
+        }
+        mtx.insert([state.x, state.y], item);
+        return;
+    }
+    /**
+     * Get all items incomes and find parent Y with the lowest
+     * Y coordinate on the matrix
+     * @param item target item
+     * @param mtx matrix to use as source
+     */
+    private _getLowestYAmongIncomes(
+        item: INodeOutput<T>,
+        mtx: Matrix<T>
+    ): number {
+        const incomes = item.passedIncomes;
+        if (incomes && incomes.length) {
+            // get lowest income y
+            const items = incomes.map(id => {
+                const coords = mtx.find(item => item.id === id);
+                if (!coords) {
+                    throw new Error(
+                        `Cannot find coordinates for passed income: "${id}"`
+                    );
+                }
+                return coords[1];
+            });
+            const y = Math.min(...items);
+            return y;
+        }
+        return 0;
+    }
+
+    /**
+     * Main processing nodes method.
+     * If node has incomes it finds lowest Y among them and
+     * sets state.y as lowest income Y value.
+     * Then inserts item on matrix using state x and y
+     * or skips if it has collision on current column. Skipping is done
+     * by passing item back to the end of the queue
+     * @param item item to insert
+     * @param state state of current iteration
+     * on 2D matrix
+     * @returns true if item was inserted false if skipped
+     */
+    protected _processOrSkipNodeOnMatrix(
+        item: INodeOutput<T>,
+        state: State<T>
+    ): boolean {
+        const { mtx, queue } = state;
+        if (item.passedIncomes && item.passedIncomes.length) {
+            state.y = this._getLowestYAmongIncomes(item, mtx);
+        }
+        // if point collides by y vertex, skipp it to next x
+        if (
+            mtx.hasVerticalCollision([state.x, state.y]) ||
+            this._handleLoopEdges(item, state)
+        ) {
+            queue.push(item);
+            return false;
+        }
+        this._insertOrSkipNodeOnMatrix(item, state, false);
+        return true;
+    }
+
+    private _handleLoopEdges(item: INodeOutput<T>, state: State<T>): boolean {
+        const { mtx } = state;
+        const loops = this.loops(item.id);
+        if (!loops) return false;
+        const loopNodes = loops.map(incomeId => {
+            const coords = mtx.find(n => n.id === incomeId);
+            if (!coords)
+                throw new Error(
+                    `Loop target '${incomeId}' not found on matrix`
+                );
+            const node = mtx.getByCoords(coords[0], coords[1]);
+            if (!node)
+                throw new Error(
+                    `Loop target node'${incomeId}' not found on matrix`
+                );
+            return {
+                id: incomeId,
+                node,
+                coords
+            };
+        });
+        const skip = loopNodes.some(income => {
+            const { coords } = income;
+            return mtx.hasVerticalCollision([
+                state.x,
+                coords[1] ? coords[1] - 1 : 0
+            ]);
+        });
+        if (skip) return true;
+        return this._insertLoopEdges(item, state, loopNodes);
+    }
+
+    private _insertLoopEdges(
+        item: INodeOutput<T>,
+        state: State<T>,
+        loopNodes: LoopNode<T>[]
+    ): boolean {
+        const { mtx } = state;
+        const initialX = state.x;
+        let initialY = state.y;
+        loopNodes.forEach(income => {
+            const { id, coords, node } = income;
+            state.x = coords[0];
+            state.y = coords[1];
+            const initialHeight = mtx.height;
+            const fromId = `${id}-${item.id}-from`;
+            const idTo = `${id}-${item.id}-to`;
+            node.renderIncomes = node.renderIncomes
+                ? [...node.renderIncomes, fromId]
+                : [fromId];
+            this._insertOrSkipNodeOnMatrix(
+                {
+                    id: fromId,
+                    anchorType: AnchorType.Loop,
+                    anchorMargin: AnchorMargin.Right,
+                    anchorFrom: item.id,
+                    anchorTo: id,
+                    isAnchor: true,
+                    renderIncomes: [idTo],
+                    passedIncomes: [item.id],
+                    payload: item.payload,
+                    next: [id]
+                },
+                state,
+                true
+            );
+            if (initialHeight !== mtx.height) initialY++;
+            state.x = initialX;
+            this._insertOrSkipNodeOnMatrix(
+                {
+                    id: idTo,
+                    anchorType: AnchorType.Loop,
+                    anchorMargin: AnchorMargin.Left,
+                    anchorFrom: item.id,
+                    anchorTo: id,
+                    isAnchor: true,
+                    renderIncomes: [item.id],
+                    passedIncomes: [item.id],
+                    payload: item.payload,
+                    next: [id]
+                },
+                state,
+                false
+            );
+        });
+        state.y = initialY;
+        return false;
+    }
+    /**
+     * Insert outcomes of split node
+     * @param item item to handle
+     * @param state current state of iteration
+     */
+    protected _insertSplitOutcomes(
+        item: INodeOutput<T>,
+        state: State<T>,
+        levelQueue: TraverseQueue<T>
+    ) {
+        const { queue } = state;
+        const outcomes = this.outcomes(item.id);
+        // first will be on the same y level as parent split
+        const firstOutcomeId = outcomes.shift();
+        if (!firstOutcomeId)
+            throw new Error(`Split "${item.id}" has no outcomes`);
+        const first = this.node(firstOutcomeId);
+        queue.add(item.id, levelQueue, {
+            id: first.id,
+            next: first.next,
+            payload: first.payload
+        });
+        // rest will create anchor with shift down by one
+        outcomes.forEach(outcomeId => {
+            state.y++;
+            const id = `${item.id}-${outcomeId}`;
+
+            this._insertOrSkipNodeOnMatrix(
+                {
+                    id: id,
+                    anchorType: AnchorType.Split,
+                    anchorMargin: AnchorMargin.Right,
+                    anchorFrom: item.id,
+                    anchorTo: outcomeId,
+                    isAnchor: true,
+                    renderIncomes: [item.id],
+                    passedIncomes: [item.id],
+                    payload: item.payload,
+                    next: [outcomeId]
+                },
+                state,
+                true
+            );
+            queue.add(id, levelQueue, { ...this.node(outcomeId) });
+        });
+    }
+    /**
+     * Insert incomes of join node
+     * @param item item to handle
+     * @param state current state of iteration
+     */
+    protected _insertJoinIncomes(
+        item: INodeOutput<T>,
+        state: State<T>,
+        levelQueue: TraverseQueue<T>,
+        addItemToQueue: boolean
+    ) {
+        const { mtx, queue } = state;
+        const incomes = item.passedIncomes;
+        const lowestY = this._getLowestYAmongIncomes(item, mtx);
+        incomes.forEach(incomeId => {
+            const p = mtx.find(item => item.id === incomeId);
+            if (!p) throw Error(`Income ${incomeId} not found`);
+            const [, y] = p;
+            if (lowestY === y) {
+                item.renderIncomes.push(incomeId);
+                return;
+            }
+            state.y = y;
+            const id = `${incomeId}-${item.id}`;
+            item.renderIncomes.push(id);
+            this._insertOrSkipNodeOnMatrix(
+                {
+                    id: id,
+                    anchorType: AnchorType.Join,
+                    anchorMargin: AnchorMargin.Left,
+                    anchorFrom: incomeId,
+                    anchorTo: item.id,
+                    isAnchor: true,
+                    renderIncomes: [incomeId],
+                    passedIncomes: [incomeId],
+                    payload: item.payload,
+                    next: [item.id]
+                },
+                state,
+                false
+            );
+        });
+        if (addItemToQueue)
+            queue.add(item.id, levelQueue, ...this.getOutcomesArray(item.id));
+    }
+    /**
+     * get outcomes inputs helper
+     * @param itemId node id
+     */
+    protected getOutcomesArray(itemId: string): INodeInput<T>[] {
+        return this.outcomes(itemId).map(outcomeId => {
+            const out = this.node(outcomeId);
+            return {
+                id: out.id,
+                next: out.next,
+                payload: out.payload
+            };
+        });
+    }
+}

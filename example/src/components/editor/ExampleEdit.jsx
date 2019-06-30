@@ -3,6 +3,8 @@ import React, { Component } from "react";
 import DirectGraph from "react-direct-graph";
 import graph from "../../data/graph.json";
 
+let counter = 1;
+
 export class ExampleEdit extends Component {
     constructor(props) {
         super(props);
@@ -32,16 +34,17 @@ export class ExampleEdit extends Component {
     };
 
     onEdgeClick = (event, node, incomes) => {
-        const original = this.resolveDataNodes(node, incomes);
-        this.insertNode(original.node, original.income);
+        this.insertNode(node, incomes[0]);
     };
 
     onEdgeMouseEnter = (event, node, incomes) => {
         event.currentTarget.style.stroke = "#f00";
+        event.currentTarget.style.fill = "#f00";
     };
 
     onEdgeMouseLeave = (event, node, incomes) => {
-        event.currentTarget.style.stroke = null;
+        event.currentTarget.style.stroke = "rgb(45, 87, 139)";
+        event.currentTarget.style.fill = "rgb(45, 87, 139)";
     };
 
     onKeyDown = event => {
@@ -68,7 +71,6 @@ export class ExampleEdit extends Component {
     };
 
     addToNodeToSelectBuffer = (node, incomes) => {
-        if (incomes.length > 1 && node.next.length) return;
         this.setState({
             ...this.state,
             ...{
@@ -87,7 +89,6 @@ export class ExampleEdit extends Component {
     };
 
     applyNodeConnection = (node, incomes) => {
-        if (node.next.length > 1 && incomes.length) return;
         const target = this.state.selected[0];
         if (target.id === node.id) return;
         const outcome = node;
@@ -114,7 +115,8 @@ export class ExampleEdit extends Component {
             }
             const inc = this.state.graph.find(n => n.id === income.id);
             const i = inc.next.findIndex(outcomeId => outcomeId === node.id);
-            if (!index) inc.next.splice(i, 1, ...node.next);
+            const incNext = node.next.filter(nextId => nextId !== inc.id);
+            if (!index) inc.next.splice(i, 1, ...incNext);
             else inc.next.splice(i, 1);
         });
         const newGraph = [...this.state.graph];
@@ -127,26 +129,8 @@ export class ExampleEdit extends Component {
         });
     };
 
-    /**
-     * Get original nodes from anchor edges
-     * return unchanged data if edge is not anchor edge
-     */
-    resolveDataNodes = (node, incomes) => {
-        let income = incomes[0];
-        if (node.isAnchor) {
-            return this.extractAnchor(node);
-        }
-        if (income.isAnchor) {
-            return this.extractAnchor(income);
-        }
-        return { node, income };
-    };
-
     insertNode = (node, income) => {
-        const newId = window.prompt(
-            `Insert new node between ${income.id} and ${node.id}: Use id:`
-        );
-        if (!newId) return;
+        const newId = `#${counter}`;
         const nodeIndex = this.state.graph.findIndex(n => n.id === node.id);
         const inc = this.state.graph.find(n => n.id === income.id);
         const newGraph = [...this.state.graph];
@@ -165,17 +149,8 @@ export class ExampleEdit extends Component {
                 graph: newGraph
             }
         });
+        counter++;
     };
-
-    extractAnchor(n) {
-        const { anchorFrom, anchorTo } = n;
-        const node = this.state.graph.find(n => n.id === anchorTo);
-        const income = this.state.graph.find(n => n.id === anchorFrom);
-        return {
-            node,
-            income
-        };
-    }
 
     render() {
         const { cellSize, padding } = this.props;

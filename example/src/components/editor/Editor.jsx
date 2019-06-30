@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 
-import { ExampleEdit, exampleEditCode } from "./";
+import { ExampleEdit } from "./";
 import { Example } from "../Example.jsx";
+
+/* eslint import/no-webpack-loader-syntax: off */
+const exampleEditCode = require("!!raw-loader!./ExampleEdit.jsx");
 
 const cellSize = 100;
 const padding = cellSize * 0.25;
@@ -18,9 +21,9 @@ export class Editor extends Component {
     render() {
         return (
             <Example
-                code={exampleEditCode}
+                code={exampleEditCode.default}
                 example={this.exampleComponent()}
-                title={"Graph Editing"}
+                title={"Graph Editor"}
                 description={this.description}
             />
         );
