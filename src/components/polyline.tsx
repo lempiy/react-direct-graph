@@ -235,7 +235,7 @@ export class GraphPolyline<T> extends React.Component<
 
     getMarkerId(markerHash: string, incomeId: string): string {
         const { node } = this.props;
-        return `${markerHash}-${node.id}-${incomeId}`;
+        return `${markerHash}-${node.id.trim()}-${incomeId.trim()}`;
     }
 
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]) {

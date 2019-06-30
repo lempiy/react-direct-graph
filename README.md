@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/lempiy/react-direct-graph.svg?branch=master)](https://travis-ci.org/lempiy/react-direct-graph) [![NPM](https://img.shields.io/npm/v/react-direct-graph.svg)](https://www.npmjs.com/package/react-direct-graph) [![Maintainability](https://api.codeclimate.com/v1/badges/d333ef5cfaaa6a432aca/maintainability)](https://codeclimate.com/github/lempiy/react-direct-graph/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/d333ef5cfaaa6a432aca/test_coverage)](https://codeclimate.com/github/lempiy/react-direct-graph/test_coverage) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-# React Direct Graph
+![react-direct-graph](./img/graph.png)
 
 > React component for drawing direct graphs with rectangular (non-curve) edge
 

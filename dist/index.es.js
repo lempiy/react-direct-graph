@@ -87,6 +87,7 @@ var AnchorMargin;
     AnchorMargin["Left"] = "LEFT";
     AnchorMargin["Right"] = "RIGHT";
 })(AnchorMargin || (AnchorMargin = {}));
+//# sourceMappingURL=node.interface.js.map
 
 /**
  * @class TraverseQueue
@@ -176,6 +177,7 @@ var TraverseQueue = /** @class */ (function () {
     };
     return TraverseQueue;
 }());
+//# sourceMappingURL=traverse-queue.class.js.map
 
 /**
  * @class Matrix
@@ -354,6 +356,7 @@ var Matrix = /** @class */ (function () {
     };
     return Matrix;
 }());
+//# sourceMappingURL=matrix.class.js.map
 
 var isMultiple = function (obj, id) {
     return obj[id] && obj[id].length > 1;
@@ -525,6 +528,7 @@ var GraphStruct = /** @class */ (function () {
     };
     return GraphStruct;
 }());
+//# sourceMappingURL=graph-struct.class.js.map
 
 /**
  * @class GraphMatrix
@@ -778,6 +782,7 @@ var GraphMatrix = /** @class */ (function (_super) {
     };
     return GraphMatrix;
 }(GraphStruct));
+//# sourceMappingURL=graph-matrix.class.js.map
 
 var MAX_ITERATIONS = 10000;
 /**
@@ -948,6 +953,9 @@ var Graph = /** @class */ (function (_super) {
     };
     return Graph;
 }(GraphMatrix));
+//# sourceMappingURL=graph.class.js.map
+
+//# sourceMappingURL=index.js.map
 
 function styleInject(css, ref) {
   if ( ref === void 0 ) ref = {};
@@ -1007,12 +1015,14 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
     };
     return DefaultNodeIcon;
 }(Component));
+//# sourceMappingURL=node-icon-default.js.map
 
 var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
     var width = _a.width, height = _a.height, x = _a.x, y = _a.y, props = __rest(_a, ["width", "height", "x", "y"]);
     return (createElement("foreignObject", { x: x, y: y, width: width, height: height, className: "node-icon" },
         createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
+//# sourceMappingURL=with-foreign-object.js.map
 
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
@@ -1075,6 +1085,7 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(Component));
+//# sourceMappingURL=element.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -1158,6 +1169,7 @@ function gen4() {
 function uniqueId(prefix) {
     return (prefix || "").concat([gen4(), gen4(), gen4(), gen4()].join("-"));
 }
+//# sourceMappingURL=index.js.map
 
 var DefaultMarkerBody = /** @class */ (function (_super) {
     __extends(DefaultMarkerBody, _super);
@@ -1183,6 +1195,7 @@ var DefaultMarker = /** @class */ (function (_super) {
     };
     return DefaultMarker;
 }(PureComponent));
+//# sourceMappingURL=marker-default.js.map
 
 var _a;
 function getPointWithResolver(direction, cellSize, padding, item, margin) {
@@ -1303,7 +1316,7 @@ var GraphPolyline = /** @class */ (function (_super) {
     };
     GraphPolyline.prototype.getMarkerId = function (markerHash, incomeId) {
         var node = this.props.node;
-        return markerHash + "-" + node.id + "-" + incomeId;
+        return markerHash + "-" + node.id.trim() + "-" + incomeId.trim();
     };
     GraphPolyline.prototype.renderLines = function (node, lines) {
         var _this = this;
@@ -1361,6 +1374,9 @@ var Graph$1 = /** @class */ (function (_super) {
     };
     return Graph;
 }(Component));
+//# sourceMappingURL=graph.js.map
+
+//# sourceMappingURL=index.js.map
 
 /**
  * @class DirectGraph
@@ -1387,6 +1403,7 @@ var DirectGraph = /** @class */ (function (_super) {
     };
     return DirectGraph;
 }(Component));
+//# sourceMappingURL=index.js.map
 
 export default DirectGraph;
 //# sourceMappingURL=index.es.js.map
