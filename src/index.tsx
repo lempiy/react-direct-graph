@@ -24,6 +24,7 @@ export default class DirectGraph<T> extends React.Component<
     getNodesMap = (list: INodeInput<T>[]): GraphViewData<T> => {
         const graph = new Graph(list);
         const mtx = graph.traverse();
+        console.log(mtx.normalize())
         return {
             nodesMap: mtx.normalize(),
             widthInCells: mtx.width,

@@ -55,6 +55,8 @@ export declare class GraphMatrix<T> extends GraphStruct<T> {
      */
     protected _processOrSkipNodeOnMatrix(item: INodeOutput<T>, state: State<T>): boolean;
     private _handleLoopEdges;
+    private _markIncomesAsPassed;
+    protected _resolveCurrentJoinIncomes(mtx: Matrix<T>, join: INodeOutput<T>): void;
     private _insertLoopEdges;
     /**
      * Insert outcomes of split node

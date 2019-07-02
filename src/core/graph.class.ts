@@ -54,12 +54,12 @@ export class Graph<T> extends GraphMatrix<T> {
         state: State<T>,
         levelQueue: TraverseQueue<T>
     ): boolean {
-        const { queue } = state;
+        const { queue, mtx } = state;
         let isInserted = false;
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         } else {
-            item.renderIncomes = [];
+            this._resolveCurrentJoinIncomes(mtx, item)
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, false);
@@ -79,12 +79,12 @@ export class Graph<T> extends GraphMatrix<T> {
         state: State<T>,
         levelQueue: TraverseQueue<T>
     ): boolean {
-        const { queue } = state;
+        const { queue, mtx } = state;
         let isInserted = false;
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         } else {
-            item.renderIncomes = [];
+            this._resolveCurrentJoinIncomes(mtx, item)
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, true);

@@ -61,6 +61,7 @@ export class GraphMatrix<T> extends GraphStruct<T> {
             mtx.insertRowBefore(state.y);
         }
         mtx.insert([state.x, state.y], item);
+        this._markIncomesAsPassed(mtx, item)
         return;
     }
     /**
@@ -155,6 +156,21 @@ export class GraphMatrix<T> extends GraphStruct<T> {
         return this._insertLoopEdges(item, state, loopNodes);
     }
 
+    private _markIncomesAsPassed(mtx: Matrix<T>, item: INodeOutput<T>) {
+        item.renderIncomes.forEach(incomeId => {
+            const found = mtx.findNode(n => n.id === incomeId)
+            if (!found) throw new Error(`Income ${incomeId} is not on matrix yet`)
+            const [coords, income] = found
+            income.childrenOnMatrix = Math.min(income.childrenOnMatrix+1, income.next.length)
+            mtx.insert(coords, income)
+        })
+    }
+
+    protected _resolveCurrentJoinIncomes(mtx: Matrix<T>, join: INodeOutput<T>) {
+        this._markIncomesAsPassed(mtx, join)
+        join.renderIncomes = []
+    }
+
     private _insertLoopEdges(
         item: INodeOutput<T>,
         state: State<T>,
@@ -184,7 +200,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                     renderIncomes: [idTo],
                     passedIncomes: [item.id],
                     payload: item.payload,
-                    next: [id]
+                    next: [id],
+                    childrenOnMatrix: 0
                 },
                 state,
                 true
@@ -202,7 +219,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                     renderIncomes: [item.id],
                     passedIncomes: [item.id],
                     payload: item.payload,
-                    next: [id]
+                    next: [id],
+                    childrenOnMatrix: 0
                 },
                 state,
                 false
@@ -249,7 +267,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                     renderIncomes: [item.id],
                     passedIncomes: [item.id],
                     payload: item.payload,
-                    next: [outcomeId]
+                    next: [outcomeId],
+                    childrenOnMatrix: 0
                 },
                 state,
                 true
@@ -293,7 +312,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                     renderIncomes: [incomeId],
                     passedIncomes: [incomeId],
                     payload: item.payload,
-                    next: [item.id]
+                    next: [item.id],
+                    childrenOnMatrix: 1 // if we're adding income - join is allready on matrix
                 },
                 state,
                 false

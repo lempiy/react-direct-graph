@@ -130,7 +130,8 @@ var TraverseQueue = /** @class */ (function () {
                 next: itm.next,
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
-                renderIncomes: incomeId ? [incomeId] : []
+                renderIncomes: incomeId ? [incomeId] : [],
+                childrenOnMatrix: 0
             });
         });
     };
@@ -219,11 +220,14 @@ var Matrix = /** @class */ (function () {
      * @param point coordinates of point to check
      */
     Matrix.prototype.hasHorizontalCollision = function (_a) {
+        var _this = this;
         var _ = _a[0], y = _a[1];
         var row = this._[y];
         if (!row)
             return false;
-        return row.some(function (point) { return !!point; });
+        return row.some(function (point) {
+            return !!point && !_this.isAllChildrenOnMatrix(point);
+        });
     };
     /**
      * Checks whether or not candidate point collides
@@ -241,6 +245,12 @@ var Matrix = /** @class */ (function () {
             }
             return !!row[x];
         });
+    };
+    /**
+     * Check if all next items of node already placed in matrix
+     */
+    Matrix.prototype.isAllChildrenOnMatrix = function (item) {
+        return item.next.length === item.childrenOnMatrix;
     };
     /**
      * Inspects matrix by Y vertex from top to bottom to
@@ -316,6 +326,26 @@ var Matrix = /** @class */ (function () {
                     return false;
                 if (callback(point)) {
                     result = [x, y];
+                    return true;
+                }
+                return false;
+            });
+        });
+        return result;
+    };
+    /**
+     * Find first node item that
+     * satisfies condition defined in callback
+     * @param callback similar to [].find. Returns boolean
+     */
+    Matrix.prototype.findNode = function (callback) {
+        var result = null;
+        this._.forEach(function (row, y) {
+            row.some(function (point, x) {
+                if (!point)
+                    return false;
+                if (callback(point)) {
+                    result = [[x, y], point];
                     return true;
                 }
                 return false;
@@ -569,6 +599,7 @@ var GraphMatrix = /** @class */ (function (_super) {
             mtx.insertRowBefore(state.y);
         }
         mtx.insert([state.x, state.y], item);
+        this._markIncomesAsPassed(mtx, item);
         return;
     };
     /**
@@ -648,6 +679,20 @@ var GraphMatrix = /** @class */ (function (_super) {
             return true;
         return this._insertLoopEdges(item, state, loopNodes);
     };
+    GraphMatrix.prototype._markIncomesAsPassed = function (mtx, item) {
+        item.renderIncomes.forEach(function (incomeId) {
+            var found = mtx.findNode(function (n) { return n.id === incomeId; });
+            if (!found)
+                throw new Error("Income " + incomeId + " is not on matrix yet");
+            var coords = found[0], income = found[1];
+            income.childrenOnMatrix = Math.min(income.childrenOnMatrix + 1, income.next.length);
+            mtx.insert(coords, income);
+        });
+    };
+    GraphMatrix.prototype._resolveCurrentJoinIncomes = function (mtx, join) {
+        this._markIncomesAsPassed(mtx, join);
+        join.renderIncomes = [];
+    };
     GraphMatrix.prototype._insertLoopEdges = function (item, state, loopNodes) {
         var _this = this;
         var mtx = state.mtx;
@@ -672,7 +717,8 @@ var GraphMatrix = /** @class */ (function (_super) {
                 renderIncomes: [idTo],
                 passedIncomes: [item.id],
                 payload: item.payload,
-                next: [id]
+                next: [id],
+                childrenOnMatrix: 0
             }, state, true);
             if (initialHeight !== mtx.height)
                 initialY++;
@@ -687,7 +733,8 @@ var GraphMatrix = /** @class */ (function (_super) {
                 renderIncomes: [item.id],
                 passedIncomes: [item.id],
                 payload: item.payload,
-                next: [id]
+                next: [id],
+                childrenOnMatrix: 0
             }, state, false);
         });
         state.y = initialY;
@@ -726,7 +773,8 @@ var GraphMatrix = /** @class */ (function (_super) {
                 renderIncomes: [item.id],
                 passedIncomes: [item.id],
                 payload: item.payload,
-                next: [outcomeId]
+                next: [outcomeId],
+                childrenOnMatrix: 0
             }, state, true);
             queue.add(id, levelQueue, __assign({}, _this.node(outcomeId)));
         });
@@ -763,7 +811,8 @@ var GraphMatrix = /** @class */ (function (_super) {
                 renderIncomes: [incomeId],
                 passedIncomes: [incomeId],
                 payload: item.payload,
-                next: [item.id]
+                next: [item.id],
+                childrenOnMatrix: 1 // if we're adding income - join is allready on matrix
             }, state, false);
         });
         if (addItemToQueue)
@@ -786,7 +835,6 @@ var GraphMatrix = /** @class */ (function (_super) {
     };
     return GraphMatrix;
 }(GraphStruct));
-//# sourceMappingURL=graph-matrix.class.js.map
 
 var MAX_ITERATIONS = 10000;
 /**
@@ -822,13 +870,13 @@ var Graph = /** @class */ (function (_super) {
      * @param levelQueue buffer subqueue of iteration
      */
     Graph.prototype._handleSplitJoinNode = function (item, state, levelQueue) {
-        var queue = state.queue;
+        var queue = state.queue, mtx = state.mtx;
         var isInserted = false;
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         }
         else {
-            item.renderIncomes = [];
+            this._resolveCurrentJoinIncomes(mtx, item);
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, false);
@@ -844,13 +892,13 @@ var Graph = /** @class */ (function (_super) {
      * @param levelQueue buffer subqueue of iteration
      */
     Graph.prototype._handleJoinNode = function (item, state, levelQueue) {
-        var queue = state.queue;
+        var queue = state.queue, mtx = state.mtx;
         var isInserted = false;
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         }
         else {
-            item.renderIncomes = [];
+            this._resolveCurrentJoinIncomes(mtx, item);
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, true);
@@ -1343,6 +1391,7 @@ var GraphPolyline = /** @class */ (function (_super) {
     };
     return GraphPolyline;
 }(React.Component));
+//# sourceMappingURL=polyline.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);
@@ -1392,6 +1441,7 @@ var DirectGraph = /** @class */ (function (_super) {
         _this.getNodesMap = function (list) {
             var graph = new Graph(list);
             var mtx = graph.traverse();
+            console.log(mtx.normalize());
             return {
                 nodesMap: mtx.normalize(),
                 widthInCells: mtx.width,

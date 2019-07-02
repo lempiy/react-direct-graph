@@ -41,7 +41,8 @@ export class TraverseQueue<T> {
                 next: itm.next,
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
-                renderIncomes: incomeId ? [incomeId] : []
+                renderIncomes: incomeId ? [incomeId] : [],
+                childrenOnMatrix: 0
             })
         })
     }
