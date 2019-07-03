@@ -87,7 +87,6 @@ var AnchorMargin;
     AnchorMargin["Left"] = "LEFT";
     AnchorMargin["Right"] = "RIGHT";
 })(AnchorMargin || (AnchorMargin = {}));
-//# sourceMappingURL=node.interface.js.map
 
 /**
  * @class TraverseQueue
@@ -126,7 +125,8 @@ var TraverseQueue = /** @class */ (function () {
                 next: itm.next,
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
-                renderIncomes: incomeId ? [incomeId] : []
+                renderIncomes: incomeId ? [incomeId] : [],
+                childrenOnMatrix: 0
             });
         });
     };
@@ -177,7 +177,6 @@ var TraverseQueue = /** @class */ (function () {
     };
     return TraverseQueue;
 }());
-//# sourceMappingURL=traverse-queue.class.js.map
 
 /**
  * @class Matrix
@@ -215,11 +214,14 @@ var Matrix = /** @class */ (function () {
      * @param point coordinates of point to check
      */
     Matrix.prototype.hasHorizontalCollision = function (_a) {
+        var _this = this;
         var _ = _a[0], y = _a[1];
         var row = this._[y];
         if (!row)
             return false;
-        return row.some(function (point) { return !!point; });
+        return row.some(function (point) {
+            return !!point && !_this.isAllChildrenOnMatrix(point);
+        });
     };
     /**
      * Checks whether or not candidate point collides
@@ -237,6 +239,12 @@ var Matrix = /** @class */ (function () {
             }
             return !!row[x];
         });
+    };
+    /**
+     * Check if all next items of node already placed in matrix
+     */
+    Matrix.prototype.isAllChildrenOnMatrix = function (item) {
+        return item.next.length === item.childrenOnMatrix;
     };
     /**
      * Inspects matrix by Y vertex from top to bottom to
@@ -320,6 +328,26 @@ var Matrix = /** @class */ (function () {
         return result;
     };
     /**
+     * Find first node item that
+     * satisfies condition defined in callback
+     * @param callback similar to [].find. Returns boolean
+     */
+    Matrix.prototype.findNode = function (callback) {
+        var result = null;
+        this._.forEach(function (row, y) {
+            row.some(function (point, x) {
+                if (!point)
+                    return false;
+                if (callback(point)) {
+                    result = [[x, y], point];
+                    return true;
+                }
+                return false;
+            });
+        });
+        return result;
+    };
+    /**
      * Return point by x, y coordinate
      */
     Matrix.prototype.getByCoords = function (x, y) {
@@ -356,7 +384,6 @@ var Matrix = /** @class */ (function () {
     };
     return Matrix;
 }());
-//# sourceMappingURL=matrix.class.js.map
 
 var isMultiple = function (obj, id) {
     return obj[id] && obj[id].length > 1;
@@ -528,7 +555,6 @@ var GraphStruct = /** @class */ (function () {
     };
     return GraphStruct;
 }());
-//# sourceMappingURL=graph-struct.class.js.map
 
 /**
  * @class GraphMatrix
@@ -565,6 +591,7 @@ var GraphMatrix = /** @class */ (function (_super) {
             mtx.insertRowBefore(state.y);
         }
         mtx.insert([state.x, state.y], item);
+        this._markIncomesAsPassed(mtx, item);
         return;
     };
     /**
@@ -606,20 +633,29 @@ var GraphMatrix = /** @class */ (function (_super) {
         if (item.passedIncomes && item.passedIncomes.length) {
             state.y = this._getLowestYAmongIncomes(item, mtx);
         }
-        // if point collides by y vertex, skipp it to next x
+        var hasLoops = this.hasLoops(item);
+        var loopNodes = hasLoops ? this._handleLoopEdges(item, state) : null;
+        var needsLoopSkip = hasLoops && !loopNodes;
+        // if point collides by y vertex, skip it to next x
         if (mtx.hasVerticalCollision([state.x, state.y]) ||
-            this._handleLoopEdges(item, state)) {
+            needsLoopSkip) {
             queue.push(item);
             return false;
         }
         this._insertOrSkipNodeOnMatrix(item, state, false);
+        if (loopNodes) {
+            this._insertLoopEdges(item, state, loopNodes);
+        }
         return true;
+    };
+    GraphMatrix.prototype.hasLoops = function (item) {
+        return !!this.loops(item.id);
     };
     GraphMatrix.prototype._handleLoopEdges = function (item, state) {
         var mtx = state.mtx;
         var loops = this.loops(item.id);
         if (!loops)
-            return false;
+            throw new Error("No loops found for node " + item.id);
         var loopNodes = loops.map(function (incomeId) {
             var coords = mtx.find(function (n) { return n.id === incomeId; });
             if (!coords)
@@ -641,8 +677,22 @@ var GraphMatrix = /** @class */ (function (_super) {
             ]);
         });
         if (skip)
-            return true;
-        return this._insertLoopEdges(item, state, loopNodes);
+            return null;
+        return loopNodes;
+    };
+    GraphMatrix.prototype._markIncomesAsPassed = function (mtx, item) {
+        item.renderIncomes.forEach(function (incomeId) {
+            var found = mtx.findNode(function (n) { return n.id === incomeId; });
+            if (!found)
+                throw new Error("Income " + incomeId + " is not on matrix yet");
+            var coords = found[0], income = found[1];
+            income.childrenOnMatrix = Math.min(income.childrenOnMatrix + 1, income.next.length);
+            mtx.insert(coords, income);
+        });
+    };
+    GraphMatrix.prototype._resolveCurrentJoinIncomes = function (mtx, join) {
+        this._markIncomesAsPassed(mtx, join);
+        join.renderIncomes = [];
     };
     GraphMatrix.prototype._insertLoopEdges = function (item, state, loopNodes) {
         var _this = this;
@@ -651,28 +701,12 @@ var GraphMatrix = /** @class */ (function (_super) {
         var initialY = state.y;
         loopNodes.forEach(function (income) {
             var id = income.id, coords = income.coords, node = income.node;
-            state.x = coords[0];
             state.y = coords[1];
             var initialHeight = mtx.height;
             var fromId = id + "-" + item.id + "-from";
             var idTo = id + "-" + item.id + "-to";
             node.renderIncomes = node.renderIncomes
                 ? node.renderIncomes.concat([fromId]) : [fromId];
-            _this._insertOrSkipNodeOnMatrix({
-                id: fromId,
-                anchorType: AnchorType.Loop,
-                anchorMargin: AnchorMargin.Right,
-                anchorFrom: item.id,
-                anchorTo: id,
-                isAnchor: true,
-                renderIncomes: [idTo],
-                passedIncomes: [item.id],
-                payload: item.payload,
-                next: [id]
-            }, state, true);
-            if (initialHeight !== mtx.height)
-                initialY++;
-            state.x = initialX;
             _this._insertOrSkipNodeOnMatrix({
                 id: idTo,
                 anchorType: AnchorType.Loop,
@@ -683,8 +717,26 @@ var GraphMatrix = /** @class */ (function (_super) {
                 renderIncomes: [item.id],
                 passedIncomes: [item.id],
                 payload: item.payload,
-                next: [id]
+                next: [id],
+                childrenOnMatrix: 0
+            }, state, true);
+            if (initialHeight !== mtx.height)
+                initialY++;
+            state.x = coords[0];
+            _this._insertOrSkipNodeOnMatrix({
+                id: fromId,
+                anchorType: AnchorType.Loop,
+                anchorMargin: AnchorMargin.Right,
+                anchorFrom: item.id,
+                anchorTo: id,
+                isAnchor: true,
+                renderIncomes: [idTo],
+                passedIncomes: [item.id],
+                payload: item.payload,
+                next: [id],
+                childrenOnMatrix: 0
             }, state, false);
+            state.x = initialX;
         });
         state.y = initialY;
         return false;
@@ -722,7 +774,8 @@ var GraphMatrix = /** @class */ (function (_super) {
                 renderIncomes: [item.id],
                 passedIncomes: [item.id],
                 payload: item.payload,
-                next: [outcomeId]
+                next: [outcomeId],
+                childrenOnMatrix: 0
             }, state, true);
             queue.add(id, levelQueue, __assign({}, _this.node(outcomeId)));
         });
@@ -738,12 +791,13 @@ var GraphMatrix = /** @class */ (function (_super) {
         var incomes = item.passedIncomes;
         var lowestY = this._getLowestYAmongIncomes(item, mtx);
         incomes.forEach(function (incomeId) {
-            var p = mtx.find(function (item) { return item.id === incomeId; });
-            if (!p)
-                throw Error("Income " + incomeId + " not found");
-            var y = p[1];
+            var found = mtx.findNode(function (n) { return n.id === incomeId; });
+            if (!found)
+                throw new Error("Income " + incomeId + " is not on matrix yet");
+            var _a = found[0], y = _a[1], income = found[1];
             if (lowestY === y) {
                 item.renderIncomes.push(incomeId);
+                income.childrenOnMatrix = Math.min(income.childrenOnMatrix + 1, income.next.length);
                 return;
             }
             state.y = y;
@@ -759,7 +813,8 @@ var GraphMatrix = /** @class */ (function (_super) {
                 renderIncomes: [incomeId],
                 passedIncomes: [incomeId],
                 payload: item.payload,
-                next: [item.id]
+                next: [item.id],
+                childrenOnMatrix: 1 // if we're adding income - join is allready on matrix
             }, state, false);
         });
         if (addItemToQueue)
@@ -782,7 +837,6 @@ var GraphMatrix = /** @class */ (function (_super) {
     };
     return GraphMatrix;
 }(GraphStruct));
-//# sourceMappingURL=graph-matrix.class.js.map
 
 var MAX_ITERATIONS = 10000;
 /**
@@ -818,13 +872,13 @@ var Graph = /** @class */ (function (_super) {
      * @param levelQueue buffer subqueue of iteration
      */
     Graph.prototype._handleSplitJoinNode = function (item, state, levelQueue) {
-        var queue = state.queue;
+        var queue = state.queue, mtx = state.mtx;
         var isInserted = false;
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         }
         else {
-            item.renderIncomes = [];
+            this._resolveCurrentJoinIncomes(mtx, item);
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, false);
@@ -840,13 +894,13 @@ var Graph = /** @class */ (function (_super) {
      * @param levelQueue buffer subqueue of iteration
      */
     Graph.prototype._handleJoinNode = function (item, state, levelQueue) {
-        var queue = state.queue;
+        var queue = state.queue, mtx = state.mtx;
         var isInserted = false;
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         }
         else {
-            item.renderIncomes = [];
+            this._resolveCurrentJoinIncomes(mtx, item);
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, true);
@@ -953,9 +1007,6 @@ var Graph = /** @class */ (function (_super) {
     };
     return Graph;
 }(GraphMatrix));
-//# sourceMappingURL=graph.class.js.map
-
-//# sourceMappingURL=index.js.map
 
 function styleInject(css, ref) {
   if ( ref === void 0 ) ref = {};
@@ -1015,14 +1066,12 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
     };
     return DefaultNodeIcon;
 }(Component));
-//# sourceMappingURL=node-icon-default.js.map
 
 var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
     var width = _a.width, height = _a.height, x = _a.x, y = _a.y, props = __rest(_a, ["width", "height", "x", "y"]);
     return (createElement("foreignObject", { x: x, y: y, width: width, height: height, className: "node-icon" },
         createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
-//# sourceMappingURL=with-foreign-object.js.map
 
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
@@ -1085,7 +1134,6 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(Component));
-//# sourceMappingURL=element.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -1169,7 +1217,6 @@ function gen4() {
 function uniqueId(prefix) {
     return (prefix || "").concat([gen4(), gen4(), gen4(), gen4()].join("-"));
 }
-//# sourceMappingURL=index.js.map
 
 var DefaultMarkerBody = /** @class */ (function (_super) {
     __extends(DefaultMarkerBody, _super);
@@ -1195,7 +1242,6 @@ var DefaultMarker = /** @class */ (function (_super) {
     };
     return DefaultMarker;
 }(PureComponent));
-//# sourceMappingURL=marker-default.js.map
 
 var _a;
 function getPointWithResolver(direction, cellSize, padding, item, margin) {
@@ -1374,9 +1420,6 @@ var Graph$1 = /** @class */ (function (_super) {
     };
     return Graph;
 }(Component));
-//# sourceMappingURL=graph.js.map
-
-//# sourceMappingURL=index.js.map
 
 /**
  * @class DirectGraph
@@ -1403,7 +1446,6 @@ var DirectGraph = /** @class */ (function (_super) {
     };
     return DirectGraph;
 }(Component));
-//# sourceMappingURL=index.js.map
 
 export default DirectGraph;
 //# sourceMappingURL=index.es.js.map

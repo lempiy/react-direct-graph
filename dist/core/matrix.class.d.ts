@@ -28,6 +28,10 @@ export declare class Matrix<T> {
      */
     hasVerticalCollision([x, y]: number[]): boolean;
     /**
+     * Check if all next items of node already placed in matrix
+     */
+    private isAllChildrenOnMatrix;
+    /**
      * Inspects matrix by Y vertex from top to bottom to
      * search first unused Y coordinate (row).
      * If there no free row on the matrix it returns
@@ -62,6 +66,12 @@ export declare class Matrix<T> {
      * @param callback similar to [].find. Returns boolean
      */
     find(callback: (item: INodeOutput<T>) => boolean): number[] | null;
+    /**
+     * Find first node item that
+     * satisfies condition defined in callback
+     * @param callback similar to [].find. Returns boolean
+     */
+    findNode(callback: (item: INodeOutput<T>) => boolean): [number[], INodeOutput<T>] | null;
     /**
      * Return point by x, y coordinate
      */

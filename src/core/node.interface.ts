@@ -81,6 +81,10 @@ export interface INodeOutput<T> extends INodeInput<T> {
      * backward travesal. Includes both types of anchors.
      */
     renderIncomes: string[];
+    /**
+     * Number of outcomes that already been placed on matrix
+     */
+    childrenOnMatrix: number;
 }
 
 export interface IMatrixNode<T> extends INodeOutput<T> {

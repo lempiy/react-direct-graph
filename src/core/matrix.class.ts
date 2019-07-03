@@ -34,7 +34,9 @@ export class Matrix<T> {
     hasHorizontalCollision([_, y]: number[]): boolean {
         const row = this._[y];
         if (!row) return false;
-        return row.some((point: INodeOutput<T> | null) => !!point);
+        return row.some((point: INodeOutput<T> | null) => {
+            return !!point && !this.isAllChildrenOnMatrix(point);
+        });
     }
 
     /**
@@ -52,6 +54,13 @@ export class Matrix<T> {
             }
             return !!row[x];
         });
+    }
+
+    /**
+     * Check if all next items of node already placed in matrix
+     */
+    private isAllChildrenOnMatrix(item: INodeOutput<T>) {
+        return item.next.length === item.childrenOnMatrix
     }
 
     /**
@@ -126,6 +135,25 @@ export class Matrix<T> {
                 if (!point) return false;
                 if (callback(point)) {
                     result = [x, y];
+                    return true;
+                }
+                return false;
+            });
+        });
+        return result;
+    }
+    /**
+     * Find first node item that
+     * satisfies condition defined in callback
+     * @param callback similar to [].find. Returns boolean
+     */
+    findNode(callback: (item: INodeOutput<T>) => boolean): [number[],INodeOutput<T>] | null {
+        let result = null;
+        this._.forEach((row, y) => {
+            row.some((point, x) => {
+                if (!point) return false;
+                if (callback(point)) {
+                    result = [[x, y], point];
                     return true;
                 }
                 return false;
