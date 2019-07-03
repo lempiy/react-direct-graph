@@ -112,22 +112,32 @@ export class GraphMatrix<T> extends GraphStruct<T> {
         if (item.passedIncomes && item.passedIncomes.length) {
             state.y = this._getLowestYAmongIncomes(item, mtx);
         }
-        // if point collides by y vertex, skipp it to next x
+        const hasLoops = this.hasLoops(item)
+        const loopNodes = hasLoops ? this._handleLoopEdges(item, state) : null
+        const needsLoopSkip = hasLoops && !loopNodes
+        // if point collides by y vertex, skip it to next x
         if (
             mtx.hasVerticalCollision([state.x, state.y]) ||
-            this._handleLoopEdges(item, state)
+            needsLoopSkip
         ) {
             queue.push(item);
             return false;
         }
         this._insertOrSkipNodeOnMatrix(item, state, false);
+        if (loopNodes) {
+            this._insertLoopEdges(item, state, loopNodes)
+        }
         return true;
     }
 
-    private _handleLoopEdges(item: INodeOutput<T>, state: State<T>): boolean {
+    private hasLoops(item: INodeOutput<T>):boolean {
+        return !!this.loops(item.id);
+    }
+
+    private _handleLoopEdges(item: INodeOutput<T>, state: State<T>):LoopNode<T>[]|null {
         const { mtx } = state;
         const loops = this.loops(item.id);
-        if (!loops) return false;
+        if (!loops) throw new Error(`No loops found for node ${item.id}`);
         const loopNodes = loops.map(incomeId => {
             const coords = mtx.find(n => n.id === incomeId);
             if (!coords)
@@ -152,8 +162,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                 coords[1] ? coords[1] - 1 : 0
             ]);
         });
-        if (skip) return true;
-        return this._insertLoopEdges(item, state, loopNodes);
+        if (skip) return null;
+        return loopNodes;
     }
 
     private _markIncomesAsPassed(mtx: Matrix<T>, item: INodeOutput<T>) {
@@ -181,7 +191,6 @@ export class GraphMatrix<T> extends GraphStruct<T> {
         let initialY = state.y;
         loopNodes.forEach(income => {
             const { id, coords, node } = income;
-            state.x = coords[0];
             state.y = coords[1];
             const initialHeight = mtx.height;
             const fromId = `${id}-${item.id}-from`;
@@ -189,6 +198,25 @@ export class GraphMatrix<T> extends GraphStruct<T> {
             node.renderIncomes = node.renderIncomes
                 ? [...node.renderIncomes, fromId]
                 : [fromId];
+                this._insertOrSkipNodeOnMatrix(
+                    {
+                        id: idTo,
+                        anchorType: AnchorType.Loop,
+                        anchorMargin: AnchorMargin.Left,
+                        anchorFrom: item.id,
+                        anchorTo: id,
+                        isAnchor: true,
+                        renderIncomes: [item.id],
+                        passedIncomes: [item.id],
+                        payload: item.payload,
+                        next: [id],
+                        childrenOnMatrix: 0
+                    },
+                    state,
+                    true
+                );
+            if (initialHeight !== mtx.height) initialY++;
+            state.x = coords[0];
             this._insertOrSkipNodeOnMatrix(
                 {
                     id: fromId,
@@ -204,27 +232,9 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                     childrenOnMatrix: 0
                 },
                 state,
-                true
-            );
-            if (initialHeight !== mtx.height) initialY++;
-            state.x = initialX;
-            this._insertOrSkipNodeOnMatrix(
-                {
-                    id: idTo,
-                    anchorType: AnchorType.Loop,
-                    anchorMargin: AnchorMargin.Left,
-                    anchorFrom: item.id,
-                    anchorTo: id,
-                    isAnchor: true,
-                    renderIncomes: [item.id],
-                    passedIncomes: [item.id],
-                    payload: item.payload,
-                    next: [id],
-                    childrenOnMatrix: 0
-                },
-                state,
                 false
             );
+            state.x = initialX;
         });
         state.y = initialY;
         return false;
@@ -255,7 +265,7 @@ export class GraphMatrix<T> extends GraphStruct<T> {
         outcomes.forEach(outcomeId => {
             state.y++;
             const id = `${item.id}-${outcomeId}`;
-
+            
             this._insertOrSkipNodeOnMatrix(
                 {
                     id: id,
@@ -289,13 +299,15 @@ export class GraphMatrix<T> extends GraphStruct<T> {
     ) {
         const { mtx, queue } = state;
         const incomes = item.passedIncomes;
+        
         const lowestY = this._getLowestYAmongIncomes(item, mtx);
         incomes.forEach(incomeId => {
-            const p = mtx.find(item => item.id === incomeId);
-            if (!p) throw Error(`Income ${incomeId} not found`);
-            const [, y] = p;
+            const found = mtx.findNode(n => n.id === incomeId)
+            if (!found) throw new Error(`Income ${incomeId} is not on matrix yet`)
+            const [[, y], income] = found;
             if (lowestY === y) {
                 item.renderIncomes.push(incomeId);
+                income.childrenOnMatrix = Math.min(income.childrenOnMatrix+1, income.next.length)
                 return;
             }
             state.y = y;

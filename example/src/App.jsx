@@ -7,13 +7,13 @@ export default class App extends Component {
     render() {
         return (
             <main>
-                {/* <Title cellSize={cellSize} padding={padding} />
+                <Title cellSize={cellSize} padding={padding} />
                 <h1>Examples</h1>
-                <Basic /> */}
+                <Basic />
                 <Custom />
-                {/* <Complex />
+                <Complex />
                 <Events />
-                <Editor /> */}
+                <Editor />
             </main>
         );
     }

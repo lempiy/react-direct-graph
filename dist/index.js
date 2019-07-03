@@ -91,7 +91,6 @@ var AnchorMargin;
     AnchorMargin["Left"] = "LEFT";
     AnchorMargin["Right"] = "RIGHT";
 })(AnchorMargin || (AnchorMargin = {}));
-//# sourceMappingURL=node.interface.js.map
 
 /**
  * @class TraverseQueue
@@ -182,7 +181,6 @@ var TraverseQueue = /** @class */ (function () {
     };
     return TraverseQueue;
 }());
-//# sourceMappingURL=traverse-queue.class.js.map
 
 /**
  * @class Matrix
@@ -390,7 +388,6 @@ var Matrix = /** @class */ (function () {
     };
     return Matrix;
 }());
-//# sourceMappingURL=matrix.class.js.map
 
 var isMultiple = function (obj, id) {
     return obj[id] && obj[id].length > 1;
@@ -562,7 +559,6 @@ var GraphStruct = /** @class */ (function () {
     };
     return GraphStruct;
 }());
-//# sourceMappingURL=graph-struct.class.js.map
 
 /**
  * @class GraphMatrix
@@ -641,20 +637,29 @@ var GraphMatrix = /** @class */ (function (_super) {
         if (item.passedIncomes && item.passedIncomes.length) {
             state.y = this._getLowestYAmongIncomes(item, mtx);
         }
-        // if point collides by y vertex, skipp it to next x
+        var hasLoops = this.hasLoops(item);
+        var loopNodes = hasLoops ? this._handleLoopEdges(item, state) : null;
+        var needsLoopSkip = hasLoops && !loopNodes;
+        // if point collides by y vertex, skip it to next x
         if (mtx.hasVerticalCollision([state.x, state.y]) ||
-            this._handleLoopEdges(item, state)) {
+            needsLoopSkip) {
             queue.push(item);
             return false;
         }
         this._insertOrSkipNodeOnMatrix(item, state, false);
+        if (loopNodes) {
+            this._insertLoopEdges(item, state, loopNodes);
+        }
         return true;
+    };
+    GraphMatrix.prototype.hasLoops = function (item) {
+        return !!this.loops(item.id);
     };
     GraphMatrix.prototype._handleLoopEdges = function (item, state) {
         var mtx = state.mtx;
         var loops = this.loops(item.id);
         if (!loops)
-            return false;
+            throw new Error("No loops found for node " + item.id);
         var loopNodes = loops.map(function (incomeId) {
             var coords = mtx.find(function (n) { return n.id === incomeId; });
             if (!coords)
@@ -676,8 +681,8 @@ var GraphMatrix = /** @class */ (function (_super) {
             ]);
         });
         if (skip)
-            return true;
-        return this._insertLoopEdges(item, state, loopNodes);
+            return null;
+        return loopNodes;
     };
     GraphMatrix.prototype._markIncomesAsPassed = function (mtx, item) {
         item.renderIncomes.forEach(function (incomeId) {
@@ -700,29 +705,12 @@ var GraphMatrix = /** @class */ (function (_super) {
         var initialY = state.y;
         loopNodes.forEach(function (income) {
             var id = income.id, coords = income.coords, node = income.node;
-            state.x = coords[0];
             state.y = coords[1];
             var initialHeight = mtx.height;
             var fromId = id + "-" + item.id + "-from";
             var idTo = id + "-" + item.id + "-to";
             node.renderIncomes = node.renderIncomes
                 ? node.renderIncomes.concat([fromId]) : [fromId];
-            _this._insertOrSkipNodeOnMatrix({
-                id: fromId,
-                anchorType: AnchorType.Loop,
-                anchorMargin: AnchorMargin.Right,
-                anchorFrom: item.id,
-                anchorTo: id,
-                isAnchor: true,
-                renderIncomes: [idTo],
-                passedIncomes: [item.id],
-                payload: item.payload,
-                next: [id],
-                childrenOnMatrix: 0
-            }, state, true);
-            if (initialHeight !== mtx.height)
-                initialY++;
-            state.x = initialX;
             _this._insertOrSkipNodeOnMatrix({
                 id: idTo,
                 anchorType: AnchorType.Loop,
@@ -735,7 +723,24 @@ var GraphMatrix = /** @class */ (function (_super) {
                 payload: item.payload,
                 next: [id],
                 childrenOnMatrix: 0
+            }, state, true);
+            if (initialHeight !== mtx.height)
+                initialY++;
+            state.x = coords[0];
+            _this._insertOrSkipNodeOnMatrix({
+                id: fromId,
+                anchorType: AnchorType.Loop,
+                anchorMargin: AnchorMargin.Right,
+                anchorFrom: item.id,
+                anchorTo: id,
+                isAnchor: true,
+                renderIncomes: [idTo],
+                passedIncomes: [item.id],
+                payload: item.payload,
+                next: [id],
+                childrenOnMatrix: 0
             }, state, false);
+            state.x = initialX;
         });
         state.y = initialY;
         return false;
@@ -790,12 +795,13 @@ var GraphMatrix = /** @class */ (function (_super) {
         var incomes = item.passedIncomes;
         var lowestY = this._getLowestYAmongIncomes(item, mtx);
         incomes.forEach(function (incomeId) {
-            var p = mtx.find(function (item) { return item.id === incomeId; });
-            if (!p)
-                throw Error("Income " + incomeId + " not found");
-            var y = p[1];
+            var found = mtx.findNode(function (n) { return n.id === incomeId; });
+            if (!found)
+                throw new Error("Income " + incomeId + " is not on matrix yet");
+            var _a = found[0], y = _a[1], income = found[1];
             if (lowestY === y) {
                 item.renderIncomes.push(incomeId);
+                income.childrenOnMatrix = Math.min(income.childrenOnMatrix + 1, income.next.length);
                 return;
             }
             state.y = y;
@@ -1005,9 +1011,6 @@ var Graph = /** @class */ (function (_super) {
     };
     return Graph;
 }(GraphMatrix));
-//# sourceMappingURL=graph.class.js.map
-
-//# sourceMappingURL=index.js.map
 
 function styleInject(css, ref) {
   if ( ref === void 0 ) ref = {};
@@ -1067,14 +1070,12 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
     };
     return DefaultNodeIcon;
 }(React.Component));
-//# sourceMappingURL=node-icon-default.js.map
 
 var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
     var width = _a.width, height = _a.height, x = _a.x, y = _a.y, props = __rest(_a, ["width", "height", "x", "y"]);
     return (React.createElement("foreignObject", { x: x, y: y, width: width, height: height, className: "node-icon" },
         React.createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
-//# sourceMappingURL=with-foreign-object.js.map
 
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
@@ -1137,7 +1138,6 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(React.Component));
-//# sourceMappingURL=element.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -1221,7 +1221,6 @@ function gen4() {
 function uniqueId(prefix) {
     return (prefix || "").concat([gen4(), gen4(), gen4(), gen4()].join("-"));
 }
-//# sourceMappingURL=index.js.map
 
 var DefaultMarkerBody = /** @class */ (function (_super) {
     __extends(DefaultMarkerBody, _super);
@@ -1247,7 +1246,6 @@ var DefaultMarker = /** @class */ (function (_super) {
     };
     return DefaultMarker;
 }(React.PureComponent));
-//# sourceMappingURL=marker-default.js.map
 
 var _a;
 function getPointWithResolver(direction, cellSize, padding, item, margin) {
@@ -1391,7 +1389,6 @@ var GraphPolyline = /** @class */ (function (_super) {
     };
     return GraphPolyline;
 }(React.Component));
-//# sourceMappingURL=polyline.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);
@@ -1427,9 +1424,6 @@ var Graph$1 = /** @class */ (function (_super) {
     };
     return Graph;
 }(React.Component));
-//# sourceMappingURL=graph.js.map
-
-//# sourceMappingURL=index.js.map
 
 /**
  * @class DirectGraph
@@ -1441,7 +1435,6 @@ var DirectGraph = /** @class */ (function (_super) {
         _this.getNodesMap = function (list) {
             var graph = new Graph(list);
             var mtx = graph.traverse();
-            console.log(mtx.normalize());
             return {
                 nodesMap: mtx.normalize(),
                 widthInCells: mtx.width,
@@ -1457,7 +1450,6 @@ var DirectGraph = /** @class */ (function (_super) {
     };
     return DirectGraph;
 }(React.Component));
-//# sourceMappingURL=index.js.map
 
 exports.default = DirectGraph;
 //# sourceMappingURL=index.js.map
