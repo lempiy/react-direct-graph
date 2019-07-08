@@ -1,39 +1,39 @@
 checks:
-  similar-code:
-    enabled: true
-    config:
-      threshold: 100
-  identical-code:
-    enabled: true
-    config:
-      threshold: 60
-  file-lines:
-    enabled: true
-    config:
-      threshold: 300
-  method-lines:
-    enabled: true
-    config:
-      threshold: 40
+    similar-code:
+        enabled: true
+        config:
+            threshold: 100
+    identical-code:
+        enabled: true
+        config:
+            threshold: 60
+    file-lines:
+        enabled: true
+        config:
+            threshold: 300
+    method-lines:
+        enabled: true
+        config:
+            threshold: 40
 plugins:
-  duplication:
-    enabled: true
-    config:
-      threshold: 60
+    duplication:
+        enabled: true
+        config:
+            threshold: 60
 exclude_patterns:
-  - "**/fixtures"
-  - "**/test.ts"
-  - "**/*.test.ts"
-  - "config/"
-  - "db/"
-  - "dist/"
-  - "features/"
-  - "**/node_modules/"
-  - "script/"
-  - "**/spec/"
-  - "**/test/"
-  - "**/tests/"
-  - "Tests/"
-  - "**/vendor/"
-  - "**/*_test.go"
-  - "**/*.d.ts"
+    - "**/fixtures"
+    - "**/test.ts"
+    - "**/*.test.ts"
+    - "config/"
+    - "db/"
+    - "dist/"
+    - "features/"
+    - "**/node_modules/"
+    - "script/"
+    - "**/spec/"
+    - "**/test/"
+    - "**/tests/"
+    - "Tests/"
+    - "**/vendor/"
+    - "**/*_test.go"
+    - "**/*.d.ts"

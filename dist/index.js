@@ -197,7 +197,7 @@ var Matrix = /** @class */ (function () {
          * Get with of matrix
          */
         get: function () {
-            return (this._.reduce(function (length, row) { return (row.length > length ? row.length : length); }, 0) || 0);
+            return this._.reduce(function (length, row) { return (row.length > length ? row.length : length); }, 0) || 0;
         },
         enumerable: true,
         configurable: true
@@ -389,9 +389,7 @@ var Matrix = /** @class */ (function () {
     return Matrix;
 }());
 
-var isMultiple = function (obj, id) {
-    return obj[id] && obj[id].length > 1;
-};
+var isMultiple = function (obj, id) { return obj[id] && obj[id].length > 1; };
 function union(setA, setB) {
     var _union = new Set(setA);
     setB.forEach(function (elem) { return _union.add(elem); });
@@ -450,9 +448,7 @@ var GraphStruct = /** @class */ (function () {
             // detect loops
             if (branchSet.has(outcomeId)) {
                 _this._loopsByNodeIdMap[node.id] = _this._loopsByNodeIdMap[node.id]
-                    ? Array.from(new Set(_this._loopsByNodeIdMap[node.id].concat([
-                        outcomeId
-                    ])))
+                    ? Array.from(new Set(_this._loopsByNodeIdMap[node.id].concat([outcomeId])))
                     : [outcomeId];
                 return;
             }
@@ -460,9 +456,7 @@ var GraphStruct = /** @class */ (function () {
                 ? Array.from(new Set(_this._incomesByNodeIdMap[outcomeId].concat([node.id])))
                 : [node.id];
             _this._outcomesByNodeIdMap[node.id] = _this._outcomesByNodeIdMap[node.id]
-                ? Array.from(new Set(_this._outcomesByNodeIdMap[node.id].concat([
-                    outcomeId
-                ])))
+                ? Array.from(new Set(_this._outcomesByNodeIdMap[node.id].concat([outcomeId])))
                 : [outcomeId];
             totalSet = _this.traverseVertically(_this._nodesMap[outcomeId], new Set(branchSet), totalSet);
             return;
@@ -522,12 +516,10 @@ var GraphStruct = /** @class */ (function () {
      * @param id id of node
      */
     GraphStruct.prototype.isRoot = function (id) {
-        return (!this._incomesByNodeIdMap[id] ||
-            !this._incomesByNodeIdMap[id].length);
+        return !this._incomesByNodeIdMap[id] || !this._incomesByNodeIdMap[id].length;
     };
     GraphStruct.prototype.isLoopEdge = function (nodeId, outcomeId) {
-        return (this._loopsByNodeIdMap[nodeId] &&
-            this._loopsByNodeIdMap[nodeId].includes(outcomeId));
+        return this._loopsByNodeIdMap[nodeId] && this._loopsByNodeIdMap[nodeId].includes(outcomeId);
     };
     /**
      * Get loops of node by id
@@ -556,6 +548,21 @@ var GraphStruct = /** @class */ (function () {
      */
     GraphStruct.prototype.node = function (id) {
         return this._nodesMap[id];
+    };
+    /**
+     * get outcomes inputs helper
+     * @param itemId node id
+     */
+    GraphStruct.prototype.getOutcomesArray = function (itemId) {
+        var _this = this;
+        return this.outcomes(itemId).map(function (outcomeId) {
+            var out = _this.node(outcomeId);
+            return {
+                id: out.id,
+                next: out.next,
+                payload: out.payload
+            };
+        });
     };
     return GraphStruct;
 }());
@@ -610,9 +617,8 @@ var GraphMatrix = /** @class */ (function (_super) {
             // get lowest income y
             var items = incomes.map(function (id) {
                 var coords = mtx.find(function (item) { return item.id === id; });
-                if (!coords) {
+                if (!coords)
                     throw new Error("Cannot find coordinates for passed income: \"" + id + "\"");
-                }
                 return coords[1];
             });
             var y = Math.min.apply(Math, items);
@@ -641,8 +647,7 @@ var GraphMatrix = /** @class */ (function (_super) {
         var loopNodes = hasLoops ? this._handleLoopEdges(item, state) : null;
         var needsLoopSkip = hasLoops && !loopNodes;
         // if point collides by y vertex, skip it to next x
-        if (mtx.hasVerticalCollision([state.x, state.y]) ||
-            needsLoopSkip) {
+        if (mtx.hasVerticalCollision([state.x, state.y]) || needsLoopSkip) {
             queue.push(item);
             return false;
         }
@@ -661,6 +666,14 @@ var GraphMatrix = /** @class */ (function (_super) {
         if (!loops)
             throw new Error("No loops found for node " + item.id);
         var loopNodes = loops.map(function (incomeId) {
+            if (item.id === incomeId) {
+                return {
+                    id: incomeId,
+                    node: item,
+                    coords: [state.x, state.y],
+                    isSelfLoop: true
+                };
+            }
             var coords = mtx.find(function (n) { return n.id === incomeId; });
             if (!coords)
                 throw new Error("Loop target '" + incomeId + "' not found on matrix");
@@ -675,10 +688,7 @@ var GraphMatrix = /** @class */ (function (_super) {
         });
         var skip = loopNodes.some(function (income) {
             var coords = income.coords;
-            return mtx.hasVerticalCollision([
-                state.x,
-                coords[1] ? coords[1] - 1 : 0
-            ]);
+            return mtx.hasVerticalCollision([state.x, coords[1] ? coords[1] - 1 : 0]);
         });
         if (skip)
             return null;
@@ -705,12 +715,31 @@ var GraphMatrix = /** @class */ (function (_super) {
         var initialY = state.y;
         loopNodes.forEach(function (income) {
             var id = income.id, coords = income.coords, node = income.node;
+            var renderIncomeId = item.id;
+            if (income.isSelfLoop) {
+                state.y = initialY;
+                state.x = initialX + 1;
+                var selfLoopId = id + "-self";
+                renderIncomeId = selfLoopId;
+                _this._insertOrSkipNodeOnMatrix({
+                    id: selfLoopId,
+                    anchorType: AnchorType.Loop,
+                    anchorMargin: AnchorMargin.Left,
+                    anchorFrom: item.id,
+                    anchorTo: id,
+                    isAnchor: true,
+                    renderIncomes: [node.id],
+                    passedIncomes: [item.id],
+                    payload: item.payload,
+                    next: [id],
+                    childrenOnMatrix: 0
+                }, state, false);
+            }
             state.y = coords[1];
             var initialHeight = mtx.height;
             var fromId = id + "-" + item.id + "-from";
             var idTo = id + "-" + item.id + "-to";
-            node.renderIncomes = node.renderIncomes
-                ? node.renderIncomes.concat([fromId]) : [fromId];
+            node.renderIncomes = node.renderIncomes ? node.renderIncomes.concat([fromId]) : [fromId];
             _this._insertOrSkipNodeOnMatrix({
                 id: idTo,
                 anchorType: AnchorType.Loop,
@@ -718,7 +747,7 @@ var GraphMatrix = /** @class */ (function (_super) {
                 anchorFrom: item.id,
                 anchorTo: id,
                 isAnchor: true,
-                renderIncomes: [item.id],
+                renderIncomes: [renderIncomeId],
                 passedIncomes: [item.id],
                 payload: item.payload,
                 next: [id],
@@ -823,21 +852,6 @@ var GraphMatrix = /** @class */ (function (_super) {
         });
         if (addItemToQueue)
             queue.add.apply(queue, [item.id, levelQueue].concat(this.getOutcomesArray(item.id)));
-    };
-    /**
-     * get outcomes inputs helper
-     * @param itemId node id
-     */
-    GraphMatrix.prototype.getOutcomesArray = function (itemId) {
-        var _this = this;
-        return this.outcomes(itemId).map(function (outcomeId) {
-            var out = _this.node(outcomeId);
-            return {
-                id: out.id,
-                next: out.next,
-                payload: out.payload
-            };
-        });
     };
     return GraphMatrix;
 }(GraphStruct));

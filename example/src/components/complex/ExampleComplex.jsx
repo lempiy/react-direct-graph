@@ -49,7 +49,7 @@ const graph = [
     },
     {
         id: "15",
-        next: ["17"]
+        next: ["17", "12"]
     },
     {
         id: "16",
@@ -73,7 +73,7 @@ const graph = [
     },
     {
         id: "19",
-        next: ["20", "1"]
+        next: ["20"]
     },
     {
         id: "18",
@@ -85,23 +85,13 @@ const graph = [
     },
     {
         id: "21",
-        next: ["22", "23"]
-    },
-    {
-        id: "22",
-        next: []
-    },
-    {
-        id: "23",
-        next: []
+        next: ["21"]
     }
 ];
 
 export class ExampleComplex extends Component {
     render() {
         const { cellSize, padding } = this.props;
-        return (
-            <DirectGraph list={graph} cellSize={cellSize} padding={padding} />
-        );
+        return <DirectGraph list={graph} cellSize={cellSize} padding={padding} />;
     }
 }

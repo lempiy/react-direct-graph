@@ -65,4 +65,9 @@ export declare class GraphStruct<T> {
      * @param id node id
      */
     protected node(id: string): INodeInput<T>;
+    /**
+     * get outcomes inputs helper
+     * @param itemId node id
+     */
+    protected getOutcomesArray(itemId: string): INodeInput<T>[];
 }

@@ -13,12 +13,7 @@ export class Matrix<T> {
      * Get with of matrix
      */
     get width(): number {
-        return (
-            this._.reduce(
-                (length, row) => (row.length > length ? row.length : length),
-                0
-            ) || 0
-        );
+        return this._.reduce((length, row) => (row.length > length ? row.length : length), 0) || 0;
     }
     /**
      * Get height of matrix
@@ -60,7 +55,7 @@ export class Matrix<T> {
      * Check if all next items of node already placed in matrix
      */
     private isAllChildrenOnMatrix(item: INodeOutput<T>) {
-        return item.next.length === item.childrenOnMatrix
+        return item.next.length === item.childrenOnMatrix;
     }
 
     /**
@@ -147,7 +142,7 @@ export class Matrix<T> {
      * satisfies condition defined in callback
      * @param callback similar to [].find. Returns boolean
      */
-    findNode(callback: (item: INodeOutput<T>) => boolean): [number[],INodeOutput<T>] | null {
+    findNode(callback: (item: INodeOutput<T>) => boolean): [number[], INodeOutput<T>] | null {
         let result = null;
         this._.forEach((row, y) => {
             row.some((point, x) => {
