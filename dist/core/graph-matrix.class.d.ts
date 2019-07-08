@@ -71,10 +71,5 @@ export declare class GraphMatrix<T> extends GraphStruct<T> {
      * @param state current state of iteration
      */
     protected _insertJoinIncomes(item: INodeOutput<T>, state: State<T>, levelQueue: TraverseQueue<T>, addItemToQueue: boolean): void;
-    /**
-     * get outcomes inputs helper
-     * @param itemId node id
-     */
-    protected getOutcomesArray(itemId: string): INodeInput<T>[];
 }
 export {};

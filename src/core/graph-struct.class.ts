@@ -1,7 +1,6 @@
 import { INodeInput, NodeType } from "./node.interface";
 
-const isMultiple = (obj: { [id: string]: string[] }, id: string): boolean =>
-    obj[id] && obj[id].length > 1;
+const isMultiple = (obj: { [id: string]: string[] }, id: string): boolean => obj[id] && obj[id].length > 1;
 
 function union<T>(setA: Set<T>, setB: Set<T>) {
     var _union = new Set(setA);
@@ -43,19 +42,11 @@ export class GraphStruct<T> {
     detectIncomesAndOutcomes() {
         this._list.reduce((totalSet, node) => {
             if (totalSet.has(node.id)) return totalSet;
-            return union(
-                totalSet,
-                this.traverseVertically(node, new Set(), totalSet)
-            );
+            return union(totalSet, this.traverseVertically(node, new Set(), totalSet));
         }, new Set<string>());
     }
-    traverseVertically(
-        node: INodeInput<T>,
-        branchSet: Set<string>,
-        totalSet: Set<string>
-    ): Set<string> {
-        if (branchSet.has(node.id))
-            throw new Error(`Duplicate incomes for node id ${node.id}`);
+    traverseVertically(node: INodeInput<T>, branchSet: Set<string>, totalSet: Set<string>): Set<string> {
+        if (branchSet.has(node.id)) throw new Error(`Duplicate incomes for node id ${node.id}`);
         branchSet.add(node.id);
         totalSet.add(node.id);
         node.next.forEach(outcomeId => {
@@ -63,40 +54,18 @@ export class GraphStruct<T> {
             if (this.isLoopEdge(node.id, outcomeId)) return;
             // detect loops
             if (branchSet.has(outcomeId)) {
-                this._loopsByNodeIdMap[node.id] = this._loopsByNodeIdMap[
-                    node.id
-                ]
-                    ? Array.from(
-                          new Set([
-                              ...this._loopsByNodeIdMap[node.id],
-                              outcomeId
-                          ])
-                      )
+                this._loopsByNodeIdMap[node.id] = this._loopsByNodeIdMap[node.id]
+                    ? Array.from(new Set([...this._loopsByNodeIdMap[node.id], outcomeId]))
                     : [outcomeId];
                 return;
             }
-            this._incomesByNodeIdMap[outcomeId] = this._incomesByNodeIdMap[
-                outcomeId
-            ]
-                ? Array.from(
-                      new Set([...this._incomesByNodeIdMap[outcomeId], node.id])
-                  )
+            this._incomesByNodeIdMap[outcomeId] = this._incomesByNodeIdMap[outcomeId]
+                ? Array.from(new Set([...this._incomesByNodeIdMap[outcomeId], node.id]))
                 : [node.id];
-            this._outcomesByNodeIdMap[node.id] = this._outcomesByNodeIdMap[
-                node.id
-            ]
-                ? Array.from(
-                      new Set([
-                          ...this._outcomesByNodeIdMap[node.id],
-                          outcomeId
-                      ])
-                  )
+            this._outcomesByNodeIdMap[node.id] = this._outcomesByNodeIdMap[node.id]
+                ? Array.from(new Set([...this._outcomesByNodeIdMap[node.id], outcomeId]))
                 : [outcomeId];
-            totalSet = this.traverseVertically(
-                this._nodesMap[outcomeId],
-                new Set(branchSet),
-                totalSet
-            );
+            totalSet = this.traverseVertically(this._nodesMap[outcomeId], new Set(branchSet), totalSet);
             return;
         });
 
@@ -154,16 +123,10 @@ export class GraphStruct<T> {
      * @param id id of node
      */
     private isRoot(id: string): boolean {
-        return (
-            !this._incomesByNodeIdMap[id] ||
-            !this._incomesByNodeIdMap[id].length
-        );
+        return !this._incomesByNodeIdMap[id] || !this._incomesByNodeIdMap[id].length;
     }
     protected isLoopEdge(nodeId: string, outcomeId: string): boolean {
-        return (
-            this._loopsByNodeIdMap[nodeId] &&
-            this._loopsByNodeIdMap[nodeId].includes(outcomeId)
-        );
+        return this._loopsByNodeIdMap[nodeId] && this._loopsByNodeIdMap[nodeId].includes(outcomeId);
     }
     /**
      * Get loops of node by id
@@ -194,7 +157,17 @@ export class GraphStruct<T> {
         return this._nodesMap[id];
     }
     /**
-     * Check if item has unresolved incomes
-     * @param item item to check
+     * get outcomes inputs helper
+     * @param itemId node id
      */
+    protected getOutcomesArray(itemId: string): INodeInput<T>[] {
+        return this.outcomes(itemId).map(outcomeId => {
+            const out = this.node(outcomeId);
+            return {
+                id: out.id,
+                next: out.next,
+                payload: out.payload
+            };
+        });
+    }
 }

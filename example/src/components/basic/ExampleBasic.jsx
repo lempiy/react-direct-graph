@@ -64,8 +64,6 @@ const graph = [
 export class ExampleBasic extends Component {
     render() {
         const { cellSize, padding } = this.props;
-        return (
-            <DirectGraph list={graph} cellSize={cellSize} padding={padding} />
-        );
+        return <DirectGraph list={graph} cellSize={cellSize} padding={padding} />;
     }
 }
