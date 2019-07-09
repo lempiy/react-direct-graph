@@ -390,11 +390,6 @@ var Matrix = /** @class */ (function () {
 }());
 
 var isMultiple = function (obj, id) { return obj[id] && obj[id].length > 1; };
-function union(setA, setB) {
-    var _union = new Set(setA);
-    setB.forEach(function (elem) { return _union.add(elem); });
-    return _union;
-}
 /**
  * @class GraphStruct
  * Frame parent-class to simplify graph
@@ -432,7 +427,7 @@ var GraphStruct = /** @class */ (function () {
         this._list.reduce(function (totalSet, node) {
             if (totalSet.has(node.id))
                 return totalSet;
-            return union(totalSet, _this.traverseVertically(node, new Set(), totalSet));
+            return _this.traverseVertically(node, new Set(), totalSet);
         }, new Set());
     };
     GraphStruct.prototype.traverseVertically = function (node, branchSet, totalSet) {

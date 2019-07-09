@@ -2,12 +2,6 @@ import { INodeInput, NodeType } from "./node.interface";
 
 const isMultiple = (obj: { [id: string]: string[] }, id: string): boolean => obj[id] && obj[id].length > 1;
 
-function union<T>(setA: Set<T>, setB: Set<T>) {
-    var _union = new Set(setA);
-    setB.forEach(elem => _union.add(elem));
-    return _union;
-}
-
 /**
  * @class GraphStruct
  * Frame parent-class to simplify graph
@@ -42,7 +36,7 @@ export class GraphStruct<T> {
     detectIncomesAndOutcomes() {
         this._list.reduce((totalSet, node) => {
             if (totalSet.has(node.id)) return totalSet;
-            return union(totalSet, this.traverseVertically(node, new Set(), totalSet));
+            return this.traverseVertically(node, new Set(), totalSet);
         }, new Set<string>());
     }
     traverseVertically(node: INodeInput<T>, branchSet: Set<string>, totalSet: Set<string>): Set<string> {
