@@ -565,9 +565,7 @@ var GraphStruct = /** @class */ (function () {
 var GraphMatrix = /** @class */ (function (_super) {
     __extends(GraphMatrix, _super);
     function GraphMatrix(list) {
-        var _this = _super.call(this, list) || this;
-        _this._list = [];
-        return _this;
+        return _super.call(this, list) || this;
     }
     /**
      * Check if item has unresolved incomes
@@ -594,7 +592,6 @@ var GraphMatrix = /** @class */ (function (_super) {
         }
         mtx.insert([state.x, state.y], item);
         this._markIncomesAsPassed(mtx, item);
-        return;
     };
     /**
      * Get all items incomes and find parent Y with the lowest
@@ -856,10 +853,7 @@ var MAX_ITERATIONS = 10000;
 var Graph = /** @class */ (function (_super) {
     __extends(Graph, _super);
     function Graph(list) {
-        var _this = _super.call(this, list) || this;
-        _this._list = [];
-        _this.applyList(list);
-        return _this;
+        return _super.call(this, list) || this;
     }
     /**
      * Function to handle split nodes
@@ -872,7 +866,6 @@ var Graph = /** @class */ (function (_super) {
         if (isInserted) {
             this._insertSplitOutcomes(item, state, levelQueue);
         }
-        return isInserted;
     };
     /**
      * Function to handle splitjoin nodes

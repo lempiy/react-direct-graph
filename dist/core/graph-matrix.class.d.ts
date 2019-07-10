@@ -16,7 +16,6 @@ interface State<T> {
  * Compute graph subclass used to interact with matrix
  */
 export declare class GraphMatrix<T> extends GraphStruct<T> {
-    protected _list: INodeInput<T>[];
     constructor(list: INodeInput<T>[]);
     /**
      * Check if item has unresolved incomes

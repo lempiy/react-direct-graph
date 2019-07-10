@@ -25,7 +25,6 @@ interface LoopNode<T> {
  * Compute graph subclass used to interact with matrix
  */
 export class GraphMatrix<T> extends GraphStruct<T> {
-    protected _list: INodeInput<T>[] = [];
     constructor(list: INodeInput<T>[]) {
         super(list);
     }
@@ -33,7 +32,7 @@ export class GraphMatrix<T> extends GraphStruct<T> {
      * Check if item has unresolved incomes
      * @param item item to check
      */
-    protected _joinHasUnresolvedIncomes(item: INodeOutput<T>) {
+    protected _joinHasUnresolvedIncomes(item: INodeOutput<T>): boolean {
         return item.passedIncomes.length != this.incomes(item.id).length;
     }
     /**
@@ -54,7 +53,6 @@ export class GraphMatrix<T> extends GraphStruct<T> {
         }
         mtx.insert([state.x, state.y], item);
         this._markIncomesAsPassed(mtx, item);
-        return;
     }
     /**
      * Get all items incomes and find parent Y with the lowest

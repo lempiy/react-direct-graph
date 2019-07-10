@@ -21,10 +21,8 @@ interface State<T> {
  * linked list of nodes to coordinate matrix
  */
 export class Graph<T> extends GraphMatrix<T> {
-    protected _list: INodeInput<T>[] = [];
     constructor(list: INodeInput<T>[]) {
         super(list);
-        this.applyList(list);
     }
     /**
      * Function to handle split nodes
@@ -36,12 +34,11 @@ export class Graph<T> extends GraphMatrix<T> {
         item: INodeOutput<T>,
         state: State<T>,
         levelQueue: TraverseQueue<T>
-    ): boolean {
+    ) {
         let isInserted = this._processOrSkipNodeOnMatrix(item, state);
         if (isInserted) {
             this._insertSplitOutcomes(item, state, levelQueue);
         }
-        return isInserted;
     }
     /**
      * Function to handle splitjoin nodes

@@ -7,7 +7,6 @@ import { GraphMatrix } from "./graph-matrix.class";
  * linked list of nodes to coordinate matrix
  */
 export declare class Graph<T> extends GraphMatrix<T> {
-    protected _list: INodeInput<T>[];
     constructor(list: INodeInput<T>[]);
     /**
      * Function to handle split nodes
