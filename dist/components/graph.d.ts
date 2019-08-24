@@ -15,7 +15,7 @@ export declare type ViewProps<T> = ElementViewProps<T> & PolylineViewProps<T>;
 interface INodeElementInput<T> {
     node: IMatrixNode<T>;
 }
-export declare class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
+export declare class Graph<T> extends React.Component<ViewProps<T> & Props<T>> {
     getNodeElementInputs: (nodesMap: {
         [id: string]: IMatrixNode<T>;
     }) => INodeElementInput<T>[];

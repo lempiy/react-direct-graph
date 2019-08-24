@@ -18,10 +18,8 @@ interface INodeElementInput<T> {
     node: IMatrixNode<T>;
 }
 
-export class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
-    getNodeElementInputs = (nodesMap: {
-        [id: string]: IMatrixNode<T>;
-    }): INodeElementInput<T>[] => {
+export class Graph<T> extends React.Component<ViewProps<T> & Props<T>> {
+    getNodeElementInputs = (nodesMap: { [id: string]: IMatrixNode<T> }): INodeElementInput<T>[] => {
         return Object.entries(nodesMap)
             .filter(([_, node]) => !node.isAnchor)
             .map(([_, node]) => ({
@@ -29,14 +27,7 @@ export class Graph<T> extends React.Component<Props<T> & ViewProps<T>> {
             }));
     };
     renderElements() {
-        const {
-            nodesMap,
-            cellSize,
-            padding,
-            widthInCells,
-            heightInCells,
-            ...restProps
-        } = this.props;
+        const { nodesMap, cellSize, padding, widthInCells, heightInCells, ...restProps } = this.props;
         const elements = this.getNodeElementInputs(nodesMap);
         return elements.map(props => (
             <React.Fragment key={props.node.id}>
