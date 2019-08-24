@@ -6,11 +6,14 @@ import * as React from "react";
 import { INodeInput, IMatrixNode, Graph } from "./core";
 import { Graph as GraphView, ViewProps } from "./components";
 
-export type Props<T> = {
+type Props<T> = {
     list: INodeInput<T>[];
     cellSize: number;
     padding: number;
 };
+
+export { INodeInput, IMatrixNode } from "./core";
+export type GraphProps<T> = Props<T> & ViewProps<T>;
 
 type GraphViewData<T> = {
     nodesMap: { [id: string]: IMatrixNode<T> };
@@ -18,9 +21,7 @@ type GraphViewData<T> = {
     heightInCells: number;
 };
 
-export default class DirectGraph<T> extends React.Component<
-    Props<T> & ViewProps<T>
-> {
+export default class DirectGraph<T> extends React.Component<GraphProps<T>> {
     getNodesMap = (list: INodeInput<T>[]): GraphViewData<T> => {
         const graph = new Graph(list);
         const mtx = graph.traverse();
