@@ -42,6 +42,14 @@ export interface INodeInput<T> {
      */
     next: string[];
     /**
+     * Name of current node.
+     */
+    name?: string;
+    /**
+     * Name of node edges.
+     */
+    edges?: string[];
+    /**
      * Payload data to transfer with current node events. Use whatever you want here.
      */
     payload: T;

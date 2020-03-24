@@ -1,7 +1,7 @@
-import { INodeInput, AnchorType, INodeOutput, AnchorMargin } from "./node.interface";
-import { TraverseQueue } from "./traverse-queue.class";
-import { Matrix } from "./matrix.class";
-import { GraphStruct } from "./graph-struct.class";
+import {AnchorMargin, AnchorType, INodeInput, INodeOutput} from "./node.interface";
+import {TraverseQueue} from "./traverse-queue.class";
+import {Matrix} from "./matrix.class";
+import {GraphStruct} from "./graph-struct.class";
 
 /**
  * Holds iteration state of the graph
@@ -69,8 +69,7 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                 if (!coords) throw new Error(`Cannot find coordinates for passed income: "${id}"`);
                 return coords[1];
             });
-            const y = Math.min(...items);
-            return y;
+            return Math.min(...items);
         }
         return 0;
     }
@@ -237,6 +236,7 @@ export class GraphMatrix<T> extends GraphStruct<T> {
      * Insert outcomes of split node
      * @param item item to handle
      * @param state current state of iteration
+     * @param levelQueue
      */
     protected _insertSplitOutcomes(item: INodeOutput<T>, state: State<T>, levelQueue: TraverseQueue<T>) {
         const { queue } = state;
@@ -248,6 +248,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
         queue.add(item.id, levelQueue, {
             id: first.id,
             next: first.next,
+            name: first.name,
+            edges: first.edges,
             payload: first.payload
         });
         // rest will create anchor with shift down by one
@@ -279,6 +281,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
      * Insert incomes of join node
      * @param item item to handle
      * @param state current state of iteration
+     * @param levelQueue
+     * @param addItemToQueue
      */
     protected _insertJoinIncomes(
         item: INodeOutput<T>,

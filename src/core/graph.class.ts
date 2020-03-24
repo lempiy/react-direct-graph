@@ -56,7 +56,7 @@ export class Graph<T> extends GraphMatrix<T> {
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         } else {
-            this._resolveCurrentJoinIncomes(mtx, item)
+            this._resolveCurrentJoinIncomes(mtx, item);
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, false);
@@ -81,7 +81,7 @@ export class Graph<T> extends GraphMatrix<T> {
         if (this._joinHasUnresolvedIncomes(item)) {
             queue.push(item);
         } else {
-            this._resolveCurrentJoinIncomes(mtx, item)
+            this._resolveCurrentJoinIncomes(mtx, item);
             isInserted = this._processOrSkipNodeOnMatrix(item, state);
             if (isInserted) {
                 this._insertJoinIncomes(item, state, levelQueue, true);
@@ -111,6 +111,7 @@ export class Graph<T> extends GraphMatrix<T> {
      * Method to handle single iteration item
      * @param item queue item to process
      * @param state state of iteration
+     * @param levelQueue
      */
     private _traverseItem(
         item: INodeOutput<T>,
@@ -190,7 +191,13 @@ export class Graph<T> extends GraphMatrix<T> {
         queue.add(
             null,
             null,
-            ...roots.map(r => ({ id: r.id, payload: r.payload, next: r.next }))
+            ...roots.map(r => ({
+                id: r.id,
+                next: r.next,
+                name: r.name,
+                edges: r.edges,
+                payload: r.payload
+            }))
         );
         this._traverseList(state);
         return mtx;

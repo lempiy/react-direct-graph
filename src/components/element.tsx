@@ -102,6 +102,28 @@ export class GraphElement<T> extends React.Component<
         return handlers;
     }
 
+    edgesName() {
+        const { node, node: {id, edges = []}, cellSize, padding } = this.props;
+        const [x, y] = this.getCoords(cellSize, padding, node);
+        const size = this.getSize(cellSize, padding);
+
+        return edges.map((name, index) => !!name && (
+            <text
+                key={`${id}__${index}`}
+                x={x+size*1.3}
+                y={y+cellSize*(0.15+index)}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                style={{
+                    stroke: "none",
+                    fill: "#2d578b"
+                }}
+            >
+                {name}
+            </text>
+        ))
+    }
+
     renderNode() {
         const { node, nodesMap, cellSize, padding } = this.props;
         const [x, y] = this.getCoords(cellSize, padding, node);
@@ -121,6 +143,21 @@ export class GraphElement<T> extends React.Component<
                         node={node}
                         incomes={incomes}
                     />
+                    {!!node.name && (
+                        <text
+                            x={x+(size/2)}
+                            y={y+size*1.2}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            style={{
+                                stroke: "none",
+                                fill: "#2d578b"
+                            }}
+                        >
+                            {node.name}
+                        </text>
+                    )}
+                    {this.edgesName()}
                 </g>
             )
         );

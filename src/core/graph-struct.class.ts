@@ -160,6 +160,8 @@ export class GraphStruct<T> {
             return {
                 id: out.id,
                 next: out.next,
+                name: out.name,
+                edges: out.edges,
                 payload: out.payload
             };
         });
