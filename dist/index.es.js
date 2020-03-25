@@ -87,6 +87,7 @@ var AnchorMargin;
     AnchorMargin["Left"] = "LEFT";
     AnchorMargin["Right"] = "RIGHT";
 })(AnchorMargin || (AnchorMargin = {}));
+//# sourceMappingURL=node.interface.js.map
 
 /**
  * @class TraverseQueue
@@ -102,7 +103,7 @@ var TraverseQueue = /** @class */ (function () {
      * or bufferQueue do nothing but push new passed income to
      * existing queue item
      * @param incomeId income id for each element
-     * @param bufferQueue buffer queue to also check for dulicates
+     * @param bufferQueue buffer queue to also check for duplicates
      * @param items queue items to add
      */
     TraverseQueue.prototype.add = function (incomeId, bufferQueue) {
@@ -123,6 +124,8 @@ var TraverseQueue = /** @class */ (function () {
             _this._.push({
                 id: itm.id,
                 next: itm.next,
+                name: itm.name,
+                edges: itm.edges,
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
                 renderIncomes: incomeId ? [incomeId] : [],
@@ -177,6 +180,7 @@ var TraverseQueue = /** @class */ (function () {
     };
     return TraverseQueue;
 }());
+//# sourceMappingURL=traverse-queue.class.js.map
 
 /**
  * @class Matrix
@@ -384,6 +388,7 @@ var Matrix = /** @class */ (function () {
     };
     return Matrix;
 }());
+//# sourceMappingURL=matrix.class.js.map
 
 var isMultiple = function (obj, id) { return obj[id] && obj[id].length > 1; };
 /**
@@ -551,12 +556,15 @@ var GraphStruct = /** @class */ (function () {
             return {
                 id: out.id,
                 next: out.next,
+                name: out.name,
+                edges: out.edges,
                 payload: out.payload
             };
         });
     };
     return GraphStruct;
 }());
+//# sourceMappingURL=graph-struct.class.js.map
 
 /**
  * @class GraphMatrix
@@ -609,8 +617,7 @@ var GraphMatrix = /** @class */ (function (_super) {
                     throw new Error("Cannot find coordinates for passed income: \"" + id + "\"");
                 return coords[1];
             });
-            var y = Math.min.apply(Math, items);
-            return y;
+            return Math.min.apply(Math, items);
         }
         return 0;
     };
@@ -766,6 +773,7 @@ var GraphMatrix = /** @class */ (function (_super) {
      * Insert outcomes of split node
      * @param item item to handle
      * @param state current state of iteration
+     * @param levelQueue
      */
     GraphMatrix.prototype._insertSplitOutcomes = function (item, state, levelQueue) {
         var _this = this;
@@ -779,6 +787,8 @@ var GraphMatrix = /** @class */ (function (_super) {
         queue.add(item.id, levelQueue, {
             id: first.id,
             next: first.next,
+            name: first.name,
+            edges: first.edges,
             payload: first.payload
         });
         // rest will create anchor with shift down by one
@@ -805,6 +815,8 @@ var GraphMatrix = /** @class */ (function (_super) {
      * Insert incomes of join node
      * @param item item to handle
      * @param state current state of iteration
+     * @param levelQueue
+     * @param addItemToQueue
      */
     GraphMatrix.prototype._insertJoinIncomes = function (item, state, levelQueue, addItemToQueue) {
         var _this = this;
@@ -843,6 +855,7 @@ var GraphMatrix = /** @class */ (function (_super) {
     };
     return GraphMatrix;
 }(GraphStruct));
+//# sourceMappingURL=graph-matrix.class.js.map
 
 var MAX_ITERATIONS = 10000;
 /**
@@ -928,6 +941,7 @@ var Graph = /** @class */ (function (_super) {
      * Method to handle single iteration item
      * @param item queue item to process
      * @param state state of iteration
+     * @param levelQueue
      */
     Graph.prototype._traverseItem = function (item, state, levelQueue) {
         var mtx = state.mtx;
@@ -1003,12 +1017,21 @@ var Graph = /** @class */ (function (_super) {
         }
         var mtx = state.mtx, queue = state.queue;
         queue.add.apply(queue, [null,
-            null].concat(roots.map(function (r) { return ({ id: r.id, payload: r.payload, next: r.next }); })));
+            null].concat(roots.map(function (r) { return ({
+            id: r.id,
+            next: r.next,
+            name: r.name,
+            edges: r.edges,
+            payload: r.payload
+        }); })));
         this._traverseList(state);
         return mtx;
     };
     return Graph;
 }(GraphMatrix));
+//# sourceMappingURL=graph.class.js.map
+
+//# sourceMappingURL=index.js.map
 
 function styleInject(css, ref) {
   if ( ref === void 0 ) ref = {};
@@ -1037,8 +1060,8 @@ function styleInject(css, ref) {
   }
 }
 
-var css = ".node-icon-default_nodeOrange__2pzZe path {\n    fill: #e25300;\n    stroke: #e25300;\n}\n\n.node-icon-default_nodeGreen__2fWrs path {\n    fill: #008c15;\n    stroke: #008c15;\n}\n\n.node-icon-default_nodeBlue__2rASh path {\n    fill: #193772;\n    stroke: #193772;\n}\n\n.node-icon-default_nodePurple__2Ilol {\n    fill: #6304a3;\n    stroke: #6304a3;\n}\n\n.node-icon-default_nodeDefaultIcon__3r8qv text {\n    font-size: 14px;\n}\n\n.node-icon-default_nodeDefaultIconGroup__2mmJl g {\n    fill: #ffffff;\n    stroke: #ffffff;\n}\n";
-var styles = {"nodeOrange":"node-icon-default_nodeOrange__2pzZe","nodeGreen":"node-icon-default_nodeGreen__2fWrs","nodeBlue":"node-icon-default_nodeBlue__2rASh","nodePurple":"node-icon-default_nodePurple__2Ilol","nodeDefaultIcon":"node-icon-default_nodeDefaultIcon__3r8qv","nodeDefaultIconGroup":"node-icon-default_nodeDefaultIconGroup__2mmJl"};
+var css = ".node-icon-default_nodeOrange__2AWeX path {\r\n    fill: #e25300;\r\n    stroke: #e25300;\r\n}\r\n\r\n.node-icon-default_nodeGreen__3NVbT path {\r\n    fill: #008c15;\r\n    stroke: #008c15;\r\n}\r\n\r\n.node-icon-default_nodeBlue__17-H_ path {\r\n    fill: #193772;\r\n    stroke: #193772;\r\n}\r\n\r\n.node-icon-default_nodePurple__1G2hv {\r\n    fill: #6304a3;\r\n    stroke: #6304a3;\r\n}\r\n\r\n.node-icon-default_nodeDefaultIcon__2nmVZ text {\r\n    font-size: 14px;\r\n}\r\n\r\n.node-icon-default_nodeDefaultIconGroup__1hIuw g {\r\n    fill: #ffffff;\r\n    stroke: #ffffff;\r\n}\r\n";
+var styles = {"nodeOrange":"node-icon-default_nodeOrange__2AWeX","nodeGreen":"node-icon-default_nodeGreen__3NVbT","nodeBlue":"node-icon-default_nodeBlue__17-H_","nodePurple":"node-icon-default_nodePurple__1G2hv","nodeDefaultIcon":"node-icon-default_nodeDefaultIcon__2nmVZ","nodeDefaultIconGroup":"node-icon-default_nodeDefaultIconGroup__1hIuw"};
 styleInject(css);
 
 var DefaultNodeIcon = /** @class */ (function (_super) {
@@ -1068,12 +1091,14 @@ var DefaultNodeIcon = /** @class */ (function (_super) {
     };
     return DefaultNodeIcon;
 }(Component));
+//# sourceMappingURL=node-icon-default.js.map
 
 var withForeignObject = function (WrappedSVGComponent) { return function (_a) {
     var width = _a.width, height = _a.height, x = _a.x, y = _a.y, props = __rest(_a, ["width", "height", "x", "y"]);
     return (createElement("foreignObject", { x: x, y: y, width: width, height: height, className: "node-icon" },
         createElement(WrappedSVGComponent, __assign({}, props))));
 }; };
+//# sourceMappingURL=with-foreign-object.js.map
 
 var GraphElement = /** @class */ (function (_super) {
     __extends(GraphElement, _super);
@@ -1125,7 +1150,11 @@ var GraphElement = /** @class */ (function (_super) {
         var NodeIcon = withForeignObject(this.props.component ? this.props.component : DefaultNodeIcon);
         var incomes = this.getNodeIncomes(node, nodesMap);
         return (!node.isAnchor && (createElement("g", __assign({ className: "node-icon-group" }, this.getNodeHandlers()),
-            createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }))));
+            createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }),
+            !!node.name && (createElement("text", { x: x + (size / 2), y: y + size * 1.2, textAnchor: "middle", dominantBaseline: "middle", style: {
+                    stroke: "none",
+                    fill: "#2d578b"
+                } }, node.name)))));
     };
     GraphElement.prototype.render = function () {
         return (createElement("g", { className: "node-group", style: {
@@ -1136,6 +1165,7 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(Component));
+//# sourceMappingURL=element.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -1219,6 +1249,7 @@ function gen4() {
 function uniqueId(prefix) {
     return (prefix || "").concat([gen4(), gen4(), gen4(), gen4()].join("-"));
 }
+//# sourceMappingURL=index.js.map
 
 var DefaultMarkerBody = /** @class */ (function (_super) {
     __extends(DefaultMarkerBody, _super);
@@ -1244,6 +1275,7 @@ var DefaultMarker = /** @class */ (function (_super) {
     };
     return DefaultMarker;
 }(PureComponent));
+//# sourceMappingURL=marker-default.js.map
 
 var _a;
 function getPointWithResolver(direction, cellSize, padding, item, margin) {
@@ -1366,6 +1398,22 @@ var GraphPolyline = /** @class */ (function (_super) {
         var node = this.props.node;
         return markerHash + "-" + node.id.trim() + "-" + incomeId.trim();
     };
+    GraphPolyline.prototype.lineName = function (_a) {
+        var next = _a.next, _b = _a.edges, edges = _b === void 0 ? [] : _b;
+        var _c = this.props, node = _c.node, id = _c.node.id, cellSize = _c.cellSize, padding = _c.padding;
+        var _d = this.getCoords(cellSize, padding, node), x = _d[0], y = _d[1];
+        var size = this.getSize(cellSize, padding);
+        var index = next.findIndex(function (uuid) { return uuid === id; });
+        return (createElement(Fragment, null,
+            createElement("circle", { cx: x - size * 0.5, cy: y + size * 0.5, r: cellSize * 0.15, style: {
+                    stroke: "none",
+                    fill: "fff"
+                } }),
+            !!edges[index] && (createElement("text", { x: x - size * 0.5, y: y + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
+                    stroke: "none",
+                    fill: "#2d578b"
+                } }, edges[index]))));
+    };
     GraphPolyline.prototype.renderLines = function (node, lines) {
         var _this = this;
         var markerHash = uniqueId("marker-");
@@ -1374,6 +1422,7 @@ var GraphPolyline = /** @class */ (function (_super) {
                 fill: "#2d578b",
                 stroke: "#2d578b"
             } }),
+            _this.lineName(line.income),
             createElement(DefaultMarker, { id: _this.getMarkerId(markerHash, line.income.id), width: 12, height: 12 }),
             createElement("polyline", __assign({}, _this.getMarker(markerHash, line.income.id), { fill: "none", className: "node-line", points: line.line
                     .reverse()
@@ -1422,6 +1471,9 @@ var Graph$1 = /** @class */ (function (_super) {
     };
     return Graph;
 }(Component));
+//# sourceMappingURL=graph.js.map
+
+//# sourceMappingURL=index.js.map
 
 /**
  * @class DirectGraph
@@ -1448,6 +1500,7 @@ var DirectGraph = /** @class */ (function (_super) {
     };
     return DirectGraph;
 }(Component));
+//# sourceMappingURL=index.js.map
 
 export default DirectGraph;
 //# sourceMappingURL=index.es.js.map

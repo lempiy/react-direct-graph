@@ -40,6 +40,7 @@ export declare class Graph<T> extends GraphMatrix<T> {
      * Method to handle single iteration item
      * @param item queue item to process
      * @param state state of iteration
+     * @param levelQueue
      */
     private _traverseItem;
     /**
