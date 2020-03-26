@@ -4,7 +4,8 @@ export interface IQueueItem<T> {
     payload: T;
     next: string[];
     name?: string;
-    edges?: string[];
+    nameOrientation?: "bottom" | "top";
+    edgeNames?: string[];
 }
 /**
  * @class TraverseQueue

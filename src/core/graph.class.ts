@@ -195,7 +195,8 @@ export class Graph<T> extends GraphMatrix<T> {
                 id: r.id,
                 next: r.next,
                 name: r.name,
-                edges: r.edges,
+                nameOrientation: r.nameOrientation,
+                edgeNames: r.edgeNames,
                 payload: r.payload
             }))
         );

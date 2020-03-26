@@ -161,7 +161,8 @@ export class GraphStruct<T> {
                 id: out.id,
                 next: out.next,
                 name: out.name,
-                edges: out.edges,
+                nameOrientation: out.nameOrientation,
+                edgeNames: out.edgeNames,
                 payload: out.payload
             };
         });

@@ -249,7 +249,8 @@ export class GraphMatrix<T> extends GraphStruct<T> {
             id: first.id,
             next: first.next,
             name: first.name,
-            edges: first.edges,
+            nameOrientation: first.nameOrientation,
+            edgeNames: first.edgeNames,
             payload: first.payload
         });
         // rest will create anchor with shift down by one

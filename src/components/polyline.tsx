@@ -240,7 +240,7 @@ export class GraphPolyline<T> extends React.Component<
 
     lineName(income: IMatrixNode<T>) {
         const { node, node: {id}, cellSize, padding } = this.props;
-        const {next, edges = []} = income;
+        const {next, edgeNames = []} = income;
         const [x, nodeY] = this.getCoords(cellSize, padding, node);
         const [, incomeY] = this.getCoords(cellSize, padding, income);
         const y = incomeY > nodeY ? incomeY : nodeY;
@@ -257,7 +257,7 @@ export class GraphPolyline<T> extends React.Component<
                         fill: "fff"
                     }}
                 />
-                {!!edges[index] && (
+                {!!edgeNames[index] && (
                     <text
                         x={x - size * 0.5}
                         y={y + size * 0.3}
@@ -268,7 +268,7 @@ export class GraphPolyline<T> extends React.Component<
                             fill: "#2d578b"
                         }}
                     >
-                        {edges[index]}
+                        {edgeNames[index]}
                     </text>
                 )}
             </>

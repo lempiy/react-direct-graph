@@ -5,7 +5,8 @@ export interface IQueueItem<T> {
     payload: T
     next: string[]
     name?: string
-    edges?: string[]
+    nameOrientation?: "bottom" | "top"
+    edgeNames?: string[]
 }
 
 /**
@@ -42,7 +43,8 @@ export class TraverseQueue<T> {
                 id: itm.id,
                 next: itm.next,
                 name: itm.name,
-                edges: itm.edges,
+                nameOrientation: itm.nameOrientation,
+                edgeNames: itm.edgeNames,
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
                 renderIncomes: incomeId ? [incomeId] : [],

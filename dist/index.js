@@ -129,7 +129,8 @@ var TraverseQueue = /** @class */ (function () {
                 id: itm.id,
                 next: itm.next,
                 name: itm.name,
-                edges: itm.edges,
+                nameOrientation: itm.nameOrientation,
+                edgeNames: itm.edgeNames,
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
                 renderIncomes: incomeId ? [incomeId] : [],
@@ -561,7 +562,8 @@ var GraphStruct = /** @class */ (function () {
                 id: out.id,
                 next: out.next,
                 name: out.name,
-                edges: out.edges,
+                nameOrientation: out.nameOrientation,
+                edgeNames: out.edgeNames,
                 payload: out.payload
             };
         });
@@ -792,7 +794,8 @@ var GraphMatrix = /** @class */ (function (_super) {
             id: first.id,
             next: first.next,
             name: first.name,
-            edges: first.edges,
+            nameOrientation: first.nameOrientation,
+            edgeNames: first.edgeNames,
             payload: first.payload
         });
         // rest will create anchor with shift down by one
@@ -1025,7 +1028,8 @@ var Graph = /** @class */ (function (_super) {
             id: r.id,
             next: r.next,
             name: r.name,
-            edges: r.edges,
+            nameOrientation: r.nameOrientation,
+            edgeNames: r.edgeNames,
             payload: r.payload
         }); })));
         this._traverseList(state);
@@ -1148,17 +1152,22 @@ var GraphElement = /** @class */ (function (_super) {
         return handlers;
     };
     GraphElement.prototype.renderNode = function () {
-        var _a = this.props, node = _a.node, nodesMap = _a.nodesMap, cellSize = _a.cellSize, padding = _a.padding;
-        var _b = this.getCoords(cellSize, padding, node), x = _b[0], y = _b[1];
+        var _a = this.props, node = _a.node, _b = _a.node, isAnchor = _b.isAnchor, name = _b.name, _c = _b.nameOrientation, nameOrientation = _c === void 0 ? "bottom" : _c, nodesMap = _a.nodesMap, cellSize = _a.cellSize, padding = _a.padding;
+        var _d = this.getCoords(cellSize, padding, node), x = _d[0], y = _d[1];
         var size = this.getSize(cellSize, padding);
         var NodeIcon = withForeignObject(this.props.component ? this.props.component : DefaultNodeIcon);
         var incomes = this.getNodeIncomes(node, nodesMap);
-        return (!node.isAnchor && (React.createElement("g", __assign({ className: "node-icon-group" }, this.getNodeHandlers()),
+        var textY = nameOrientation === "top"
+            ? y - size * 0.2
+            : y + size * 1.2;
+        return (!isAnchor && (React.createElement("g", __assign({ className: "node-icon-group" }, this.getNodeHandlers()),
             React.createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }),
-            !!node.name && (React.createElement("text", { x: x + size * 0.5, y: y + size * 1.2, textAnchor: "middle", dominantBaseline: "middle", style: {
-                    stroke: "none",
-                    fill: "#2d578b"
-                } }, node.name)))));
+            !!name && (React.createElement("text", { x: x + size * 0.5, y: textY, textAnchor: "middle", dominantBaseline: "middle", style: {
+                    stroke: "#fff",
+                    strokeWidth: 3,
+                    fill: "#2d578b",
+                    paintOrder: "stroke"
+                } }, name)))));
     };
     GraphElement.prototype.render = function () {
         return (React.createElement("g", { className: "node-group", style: {
@@ -1169,7 +1178,6 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(React.Component));
-//# sourceMappingURL=element.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -1404,7 +1412,7 @@ var GraphPolyline = /** @class */ (function (_super) {
     };
     GraphPolyline.prototype.lineName = function (income) {
         var _a = this.props, node = _a.node, id = _a.node.id, cellSize = _a.cellSize, padding = _a.padding;
-        var next = income.next, _b = income.edges, edges = _b === void 0 ? [] : _b;
+        var next = income.next, _b = income.edgeNames, edgeNames = _b === void 0 ? [] : _b;
         var _c = this.getCoords(cellSize, padding, node), x = _c[0], nodeY = _c[1];
         var _d = this.getCoords(cellSize, padding, income), incomeY = _d[1];
         var y = incomeY > nodeY ? incomeY : nodeY;
@@ -1415,10 +1423,10 @@ var GraphPolyline = /** @class */ (function (_super) {
                     stroke: "none",
                     fill: "fff"
                 } }),
-            !!edges[index] && (React.createElement("text", { x: x - size * 0.5, y: y + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
+            !!edgeNames[index] && (React.createElement("text", { x: x - size * 0.5, y: y + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
                     stroke: "none",
                     fill: "#2d578b"
-                } }, edges[index]))));
+                } }, edgeNames[index]))));
     };
     GraphPolyline.prototype.renderLines = function (node, lines) {
         var _this = this;
@@ -1442,6 +1450,7 @@ var GraphPolyline = /** @class */ (function (_super) {
     };
     return GraphPolyline;
 }(React.Component));
+//# sourceMappingURL=polyline.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);
@@ -1465,9 +1474,9 @@ var Graph$1 = /** @class */ (function (_super) {
     Graph.prototype.renderElements = function () {
         var _a = this.props, nodesMap = _a.nodesMap, cellSize = _a.cellSize, padding = _a.padding, widthInCells = _a.widthInCells, heightInCells = _a.heightInCells, restProps = __rest(_a, ["nodesMap", "cellSize", "padding", "widthInCells", "heightInCells"]);
         var elements = this.getNodeElementInputs(nodesMap);
-        return elements.map(function (props) { return (React.createElement(React.Fragment, { key: props.node.id },
-            React.createElement(GraphElement, __assign({ cellSize: cellSize, padding: padding, nodesMap: nodesMap }, props, restProps)),
-            React.createElement(GraphPolyline, __assign({ cellSize: cellSize, padding: padding, nodesMap: nodesMap }, props, restProps)))); });
+        return (React.createElement(React.Fragment, null,
+            elements.map(function (props) { return (React.createElement(GraphPolyline, __assign({ key: "polyline__" + props.node.id, cellSize: cellSize, padding: padding, nodesMap: nodesMap }, props, restProps))); }),
+            elements.map(function (props) { return (React.createElement(GraphElement, __assign({ key: "element__" + props.node.id, cellSize: cellSize, padding: padding, nodesMap: nodesMap }, props, restProps))); })));
     };
     Graph.prototype.render = function () {
         var _a = this.props, cellSize = _a.cellSize, widthInCells = _a.widthInCells, heightInCells = _a.heightInCells;

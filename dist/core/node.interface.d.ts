@@ -40,13 +40,17 @@ export interface INodeInput<T> {
      */
     next: string[];
     /**
-     * Name of current node.
+     * Name of current node. Empty if the node without a name.
      */
     name?: string;
     /**
-     * Name of node edges.
+     * Name of current node. Empty if the node orientation is bottom.
      */
-    edges?: string[];
+    nameOrientation?: "bottom" | "top";
+    /**
+     * Name of node edges. Matched to the edge index with the next. Empty array if the edges without a name.
+     */
+    edgeNames?: string[];
     /**
      * Payload data to transfer with current node events. Use whatever you want here.
      */
@@ -76,7 +80,7 @@ export interface INodeOutput<T> extends INodeInput<T> {
      */
     anchorMargin?: AnchorMargin;
     /**
-     * First level node incomes passed during travesal. Ignores join
+     * First level node incomes passed during traversal. Ignores join
      * anchor. Mostly for tech usage. To recognize rendering parents
      * Use renderIncomes.
      */
