@@ -1151,7 +1151,7 @@ var GraphElement = /** @class */ (function (_super) {
         var incomes = this.getNodeIncomes(node, nodesMap);
         return (!node.isAnchor && (createElement("g", __assign({ className: "node-icon-group" }, this.getNodeHandlers()),
             createElement(NodeIcon, { x: x, y: y, height: size, width: size, node: node, incomes: incomes }),
-            !!node.name && (createElement("text", { x: x + (size / 2), y: y + size * 1.2, textAnchor: "middle", dominantBaseline: "middle", style: {
+            !!node.name && (createElement("text", { x: x + size * 0.5, y: y + size * 1.2, textAnchor: "middle", dominantBaseline: "middle", style: {
                     stroke: "none",
                     fill: "#2d578b"
                 } }, node.name)))));
@@ -1398,10 +1398,12 @@ var GraphPolyline = /** @class */ (function (_super) {
         var node = this.props.node;
         return markerHash + "-" + node.id.trim() + "-" + incomeId.trim();
     };
-    GraphPolyline.prototype.lineName = function (_a) {
-        var next = _a.next, _b = _a.edges, edges = _b === void 0 ? [] : _b;
-        var _c = this.props, node = _c.node, id = _c.node.id, cellSize = _c.cellSize, padding = _c.padding;
-        var _d = this.getCoords(cellSize, padding, node), x = _d[0], y = _d[1];
+    GraphPolyline.prototype.lineName = function (income) {
+        var _a = this.props, node = _a.node, id = _a.node.id, cellSize = _a.cellSize, padding = _a.padding;
+        var next = income.next, _b = income.edges, edges = _b === void 0 ? [] : _b;
+        var _c = this.getCoords(cellSize, padding, node), x = _c[0], nodeY = _c[1];
+        var _d = this.getCoords(cellSize, padding, income), incomeY = _d[1];
+        var y = incomeY > nodeY ? incomeY : nodeY;
         var size = this.getSize(cellSize, padding);
         var index = next.findIndex(function (uuid) { return uuid === id; });
         return (createElement(Fragment, null,

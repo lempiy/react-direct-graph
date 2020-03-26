@@ -123,8 +123,8 @@ export class GraphElement<T> extends React.Component<
                     />
                     {!!node.name && (
                         <text
-                            x={x+(size/2)}
-                            y={y+size*1.2}
+                            x={x + size * 0.5}
+                            y={y + size * 1.2}
                             textAnchor="middle"
                             dominantBaseline="middle"
                             style={{

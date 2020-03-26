@@ -238,18 +238,20 @@ export class GraphPolyline<T> extends React.Component<
         return `${markerHash}-${node.id.trim()}-${incomeId.trim()}`;
     }
 
-    lineName({next, edges = []}: IMatrixNode<T>) {
+    lineName(income: IMatrixNode<T>) {
         const { node, node: {id}, cellSize, padding } = this.props;
-        const [x, y] = this.getCoords(cellSize, padding, node);
+        const {next, edges = []} = income;
+        const [x, nodeY] = this.getCoords(cellSize, padding, node);
+        const [, incomeY] = this.getCoords(cellSize, padding, income);
+        const y = incomeY > nodeY ? incomeY : nodeY;
         const size = this.getSize(cellSize, padding);
         const index = next.findIndex(uuid => uuid === id);
-
         return (
             <>
                 <circle
-                    cx={x-size*0.5}
-                    cy={y+size*0.5}
-                    r={cellSize*0.15}
+                    cx={x - size * 0.5}
+                    cy={y + size * 0.5}
+                    r={cellSize * 0.15}
                     style={{
                         stroke: "none",
                         fill: "fff"
@@ -257,8 +259,8 @@ export class GraphPolyline<T> extends React.Component<
                 />
                 {!!edges[index] && (
                     <text
-                        x={x-size*0.5}
-                        y={y+size*0.3}
+                        x={x - size * 0.5}
+                        y={y + size * 0.3}
                         textAnchor="middle"
                         dominantBaseline="middle"
                         style={{
