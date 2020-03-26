@@ -4,6 +4,9 @@ export interface IQueueItem<T> {
     id: string
     payload: T
     next: string[]
+    name?: string
+    nameOrientation?: "bottom" | "top"
+    edgeNames?: string[]
 }
 
 /**
@@ -12,13 +15,13 @@ export interface IQueueItem<T> {
  * graph traversing
  */
 export class TraverseQueue<T> {
-    private _: INodeOutput<T>[] = []
+    private _: INodeOutput<T>[] = [];
     /**
      * Add items to queue. If items already exist in this queue
      * or bufferQueue do nothing but push new passed income to
      * existing queue item
      * @param incomeId income id for each element
-     * @param bufferQueue buffer queue to also check for dulicates
+     * @param bufferQueue buffer queue to also check for duplicates
      * @param items queue items to add
      */
     add(
@@ -31,14 +34,17 @@ export class TraverseQueue<T> {
                 this.find(item => item.id === itm.id) ||
                 (bufferQueue
                     ? bufferQueue.find(item => item.id === itm.id)
-                    : null)
+                    : null);
             if (item && incomeId) {
-                item.passedIncomes.push(incomeId)
+                item.passedIncomes.push(incomeId);
                 return
             }
             this._.push({
                 id: itm.id,
                 next: itm.next,
+                name: itm.name,
+                nameOrientation: itm.nameOrientation,
+                edgeNames: itm.edgeNames,
                 payload: itm.payload,
                 passedIncomes: incomeId ? [incomeId] : [],
                 renderIncomes: incomeId ? [incomeId] : [],
@@ -83,9 +89,9 @@ export class TraverseQueue<T> {
      * @returns newQueue new queue with items from old queue
      */
     drain(): TraverseQueue<T> {
-        const newQueue = new TraverseQueue<T>()
-        newQueue._ = newQueue._.concat(this._)
-        this._ = []
+        const newQueue = new TraverseQueue<T>();
+        newQueue._ = newQueue._.concat(this._);
+        this._ = [];
         return newQueue
     }
 }

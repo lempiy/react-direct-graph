@@ -238,6 +238,43 @@ export class GraphPolyline<T> extends React.Component<
         return `${markerHash}-${node.id.trim()}-${incomeId.trim()}`;
     }
 
+    lineName(income: IMatrixNode<T>) {
+        const { node, node: {id}, cellSize, padding } = this.props;
+        const {next, edgeNames = []} = income;
+        const [x, nodeY] = this.getCoords(cellSize, padding, node);
+        const [, incomeY] = this.getCoords(cellSize, padding, income);
+        const y = incomeY > nodeY ? incomeY : nodeY;
+        const size = this.getSize(cellSize, padding);
+        const index = next.findIndex(uuid => uuid === id);
+        return (
+            <>
+                <circle
+                    cx={x - size * 0.5}
+                    cy={y + size * 0.5}
+                    r={cellSize * 0.15}
+                    style={{
+                        stroke: "none",
+                        fill: "fff"
+                    }}
+                />
+                {!!edgeNames[index] && (
+                    <text
+                        x={x - size * 0.5}
+                        y={y + size * 0.3}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{
+                            stroke: "none",
+                            fill: "#2d578b"
+                        }}
+                    >
+                        {edgeNames[index]}
+                    </text>
+                )}
+            </>
+        )
+    }
+
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]) {
         const markerHash = uniqueId("marker-");
         return lines.map(line => (
@@ -250,6 +287,7 @@ export class GraphPolyline<T> extends React.Component<
                     stroke: "#2d578b"
                 }}
             >
+                {this.lineName(line.income)}
                 <DefaultMarker
                     id={this.getMarkerId(markerHash, line.income.id)}
                     width={12}

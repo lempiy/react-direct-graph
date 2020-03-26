@@ -29,24 +29,30 @@ export class Graph<T> extends React.Component<ViewProps<T> & Props<T>> {
     renderElements() {
         const { nodesMap, cellSize, padding, widthInCells, heightInCells, ...restProps } = this.props;
         const elements = this.getNodeElementInputs(nodesMap);
-        return elements.map(props => (
-            <React.Fragment key={props.node.id}>
-                <GraphElement
-                    cellSize={cellSize}
-                    padding={padding}
-                    nodesMap={nodesMap}
-                    {...props}
-                    {...restProps}
-                />
-                <GraphPolyline
-                    cellSize={cellSize}
-                    padding={padding}
-                    nodesMap={nodesMap}
-                    {...props}
-                    {...restProps}
-                />
-            </React.Fragment>
-        ));
+        return (
+            <>
+                {elements.map(props => (
+                    <GraphPolyline
+                        key={`polyline__${props.node.id}`}
+                        cellSize={cellSize}
+                        padding={padding}
+                        nodesMap={nodesMap}
+                        {...props}
+                        {...restProps}
+                    />
+                ))}
+                {elements.map(props => (
+                    <GraphElement
+                        key={`element__${props.node.id}`}
+                        cellSize={cellSize}
+                        padding={padding}
+                        nodesMap={nodesMap}
+                        {...props}
+                        {...restProps}
+                    />
+                ))}
+            </>
+        )
     }
     render() {
         const { cellSize, widthInCells, heightInCells } = this.props;
