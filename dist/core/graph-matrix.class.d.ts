@@ -62,12 +62,15 @@ export declare class GraphMatrix<T> extends GraphStruct<T> {
      * Insert outcomes of split node
      * @param item item to handle
      * @param state current state of iteration
+     * @param levelQueue
      */
     protected _insertSplitOutcomes(item: INodeOutput<T>, state: State<T>, levelQueue: TraverseQueue<T>): void;
     /**
      * Insert incomes of join node
      * @param item item to handle
      * @param state current state of iteration
+     * @param levelQueue
+     * @param addItemToQueue
      */
     protected _insertJoinIncomes(item: INodeOutput<T>, state: State<T>, levelQueue: TraverseQueue<T>, addItemToQueue: boolean): void;
 }

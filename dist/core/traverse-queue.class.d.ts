@@ -3,6 +3,9 @@ export interface IQueueItem<T> {
     id: string;
     payload: T;
     next: string[];
+    name?: string;
+    nameOrientation?: "bottom" | "top";
+    edgeNames?: string[];
 }
 /**
  * @class TraverseQueue
@@ -16,7 +19,7 @@ export declare class TraverseQueue<T> {
      * or bufferQueue do nothing but push new passed income to
      * existing queue item
      * @param incomeId income id for each element
-     * @param bufferQueue buffer queue to also check for dulicates
+     * @param bufferQueue buffer queue to also check for duplicates
      * @param items queue items to add
      */
     add(incomeId: string | null, bufferQueue: TraverseQueue<T> | null, ...items: IQueueItem<T>[]): void;

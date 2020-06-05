@@ -25,4 +25,4 @@ export const withForeignObject = <P extends Object>(
     >
         <WrappedSVGComponent {...props as P} />
     </foreignObject>
-)
+);

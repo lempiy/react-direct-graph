@@ -103,15 +103,18 @@ export class GraphElement<T> extends React.Component<
     }
 
     renderNode() {
-        const { node, nodesMap, cellSize, padding } = this.props;
+        const { node, node: { isAnchor, name, nameOrientation = "bottom" }, nodesMap, cellSize, padding } = this.props;
         const [x, y] = this.getCoords(cellSize, padding, node);
         const size = this.getSize(cellSize, padding);
         const NodeIcon = withForeignObject<GraphNodeIconComponentProps<T>>(
             this.props.component ? this.props.component : DefaultNodeIcon
         );
         const incomes = this.getNodeIncomes(node, nodesMap);
+        const textY = nameOrientation === "top"
+            ? y - size * 0.2
+            : y + size * 1.2;
         return (
-            !node.isAnchor && (
+            !isAnchor && (
                 <g className="node-icon-group" {...this.getNodeHandlers()}>
                     <NodeIcon
                         x={x}
@@ -121,6 +124,22 @@ export class GraphElement<T> extends React.Component<
                         node={node}
                         incomes={incomes}
                     />
+                    {!!name && (
+                        <text
+                            x={x + size * 0.5}
+                            y={textY}
+                            textAnchor="middle"
+                            dominantBaseline="middle"
+                            style={{
+                                stroke: "#fff",
+                                strokeWidth: 3,
+                                fill: "#2d578b",
+                                paintOrder: "stroke"
+                            }}
+                        >
+                            {name}
+                        </text>
+                    )}
                 </g>
             )
         );
