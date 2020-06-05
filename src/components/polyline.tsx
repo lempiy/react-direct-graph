@@ -238,18 +238,35 @@ export class GraphPolyline<T> extends React.Component<
         return `${markerHash}-${node.id.trim()}-${incomeId.trim()}`;
     }
 
-    lineName(income: IMatrixNode<T>) {
+    getLineNameCoords(income: IMatrixNode<T>): number[] {
         const { node, node: {id}, cellSize, padding } = this.props;
-        const {next, edgeNames = []} = income;
-        const [x, nodeY] = this.getCoords(cellSize, padding, node);
-        const [, incomeY] = this.getCoords(cellSize, padding, income);
-        const y = incomeY > nodeY ? incomeY : nodeY;
+        const index = income.next.findIndex(uuid => uuid === id);
+
+        const [, nodeY] = this.getCoords(cellSize, padding, node);
+        const [x, incomeY] = this.getCoords(cellSize, padding, income);
+
+        let y = nodeY;
+        if (incomeY > nodeY) {
+            y = incomeY;
+        }
+        if (incomeY === nodeY) {
+            y = y + cellSize * index;
+        }
+
+        return [x, y];
+    };
+
+    lineName(income: IMatrixNode<T>) {
+        const { node: {id}, cellSize, padding } = this.props;
+        const { next, edgeNames = [] } = income;
+
+        const [x, y] = this.getLineNameCoords(income);
         const size = this.getSize(cellSize, padding);
         const index = next.findIndex(uuid => uuid === id);
         return (
             <>
                 <circle
-                    cx={x - size * 0.5}
+                    cx={x + size * 1.5}
                     cy={y + size * 0.5}
                     r={cellSize * 0.15}
                     style={{
@@ -259,7 +276,7 @@ export class GraphPolyline<T> extends React.Component<
                 />
                 {!!edgeNames[index] && (
                     <text
-                        x={x - size * 0.5}
+                        x={x + size * 1.5}
                         y={y + size * 0.3}
                         textAnchor="middle"
                         dominantBaseline="middle"

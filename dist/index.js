@@ -1068,8 +1068,8 @@ function styleInject(css, ref) {
   }
 }
 
-var css = ".node-icon-default_nodeOrange__2AWeX path {\r\n    fill: #e25300;\r\n    stroke: #e25300;\r\n}\r\n\r\n.node-icon-default_nodeGreen__3NVbT path {\r\n    fill: #008c15;\r\n    stroke: #008c15;\r\n}\r\n\r\n.node-icon-default_nodeBlue__17-H_ path {\r\n    fill: #193772;\r\n    stroke: #193772;\r\n}\r\n\r\n.node-icon-default_nodePurple__1G2hv {\r\n    fill: #6304a3;\r\n    stroke: #6304a3;\r\n}\r\n\r\n.node-icon-default_nodeDefaultIcon__2nmVZ text {\r\n    font-size: 14px;\r\n}\r\n\r\n.node-icon-default_nodeDefaultIconGroup__1hIuw g {\r\n    fill: #ffffff;\r\n    stroke: #ffffff;\r\n}\r\n";
-var styles = {"nodeOrange":"node-icon-default_nodeOrange__2AWeX","nodeGreen":"node-icon-default_nodeGreen__3NVbT","nodeBlue":"node-icon-default_nodeBlue__17-H_","nodePurple":"node-icon-default_nodePurple__1G2hv","nodeDefaultIcon":"node-icon-default_nodeDefaultIcon__2nmVZ","nodeDefaultIconGroup":"node-icon-default_nodeDefaultIconGroup__1hIuw"};
+var css = ".node-icon-default_nodeOrange__2pzZe path {\n    fill: #e25300;\n    stroke: #e25300;\n}\n\n.node-icon-default_nodeGreen__2fWrs path {\n    fill: #008c15;\n    stroke: #008c15;\n}\n\n.node-icon-default_nodeBlue__2rASh path {\n    fill: #193772;\n    stroke: #193772;\n}\n\n.node-icon-default_nodePurple__2Ilol {\n    fill: #6304a3;\n    stroke: #6304a3;\n}\n\n.node-icon-default_nodeDefaultIcon__3r8qv text {\n    font-size: 14px;\n}\n\n.node-icon-default_nodeDefaultIconGroup__2mmJl g {\n    fill: #ffffff;\n    stroke: #ffffff;\n}\n";
+var styles = {"nodeOrange":"node-icon-default_nodeOrange__2pzZe","nodeGreen":"node-icon-default_nodeGreen__2fWrs","nodeBlue":"node-icon-default_nodeBlue__2rASh","nodePurple":"node-icon-default_nodePurple__2Ilol","nodeDefaultIcon":"node-icon-default_nodeDefaultIcon__3r8qv","nodeDefaultIconGroup":"node-icon-default_nodeDefaultIconGroup__2mmJl"};
 styleInject(css);
 
 var DefaultNodeIcon = /** @class */ (function (_super) {
@@ -1178,6 +1178,7 @@ var GraphElement = /** @class */ (function (_super) {
     };
     return GraphElement;
 }(React.Component));
+//# sourceMappingURL=element.js.map
 
 var VectorDirection;
 (function (VectorDirection) {
@@ -1410,20 +1411,32 @@ var GraphPolyline = /** @class */ (function (_super) {
         var node = this.props.node;
         return markerHash + "-" + node.id.trim() + "-" + incomeId.trim();
     };
-    GraphPolyline.prototype.lineName = function (income) {
+    GraphPolyline.prototype.getLineNameCoords = function (income) {
         var _a = this.props, node = _a.node, id = _a.node.id, cellSize = _a.cellSize, padding = _a.padding;
+        var index = income.next.findIndex(function (uuid) { return uuid === id; });
+        var _b = this.getCoords(cellSize, padding, node), nodeY = _b[1];
+        var _c = this.getCoords(cellSize, padding, income), x = _c[0], incomeY = _c[1];
+        var y = nodeY;
+        if (incomeY > nodeY) {
+            y = incomeY;
+        }
+        if (incomeY === nodeY) {
+            y = y + cellSize * index;
+        }
+        return [x, y];
+    };
+    GraphPolyline.prototype.lineName = function (income) {
+        var _a = this.props, id = _a.node.id, cellSize = _a.cellSize, padding = _a.padding;
         var next = income.next, _b = income.edgeNames, edgeNames = _b === void 0 ? [] : _b;
-        var _c = this.getCoords(cellSize, padding, node), x = _c[0], nodeY = _c[1];
-        var _d = this.getCoords(cellSize, padding, income), incomeY = _d[1];
-        var y = incomeY > nodeY ? incomeY : nodeY;
+        var _c = this.getLineNameCoords(income), x = _c[0], y = _c[1];
         var size = this.getSize(cellSize, padding);
         var index = next.findIndex(function (uuid) { return uuid === id; });
         return (React.createElement(React.Fragment, null,
-            React.createElement("circle", { cx: x - size * 0.5, cy: y + size * 0.5, r: cellSize * 0.15, style: {
+            React.createElement("circle", { cx: x + size * 1.5, cy: y + size * 0.5, r: cellSize * 0.15, style: {
                     stroke: "none",
                     fill: "fff"
                 } }),
-            !!edgeNames[index] && (React.createElement("text", { x: x - size * 0.5, y: y + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
+            !!edgeNames[index] && (React.createElement("text", { x: x + size * 1.5, y: y + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
                     stroke: "none",
                     fill: "#2d578b"
                 } }, edgeNames[index]))));
@@ -1450,7 +1463,6 @@ var GraphPolyline = /** @class */ (function (_super) {
     };
     return GraphPolyline;
 }(React.Component));
-//# sourceMappingURL=polyline.js.map
 
 var Graph$1 = /** @class */ (function (_super) {
     __extends(Graph, _super);
