@@ -1421,20 +1421,49 @@ var GraphPolyline = /** @class */ (function (_super) {
         }
         return [x, y];
     };
+    GraphPolyline.prototype.getLineComponentCoords = function (income) {
+        var _a = this.props, node = _a.node, id = _a.node.id, cellSize = _a.cellSize, padding = _a.padding;
+        var index = income.next.findIndex(function (uuid) { return uuid === id; });
+        var _b = this.getCoords(cellSize, padding, node), nodeX = _b[0], nodeY = _b[1];
+        var _c = this.getCoords(cellSize, padding, income), incomeX = _c[0], incomeY = _c[1];
+        var x = incomeX / 2 + nodeX / 2;
+        var y = nodeY;
+        if (incomeY > nodeY) {
+            y = incomeY;
+        }
+        if (incomeY === nodeY) {
+            y = y + cellSize * index;
+        }
+        return [x, y];
+    };
+    GraphPolyline.prototype.lineComponent = function (income) {
+        var _a = this.props, cellSize = _a.cellSize, padding = _a.padding, edgeComponent = _a.edgeComponent;
+        var _b = this.getLineComponentCoords(income), x = _b[0], y = _b[1];
+        var size = this.getSize(cellSize, padding);
+        if (!edgeComponent) {
+            return null;
+        }
+        var Component$$1 = edgeComponent;
+        return (createElement("foreignObject", { className: "edge-icon", x: x + size * 0.5 - cellSize * 0.1, y: y + size * 0.5 - cellSize * 0.1, width: cellSize * 0.2, height: cellSize * 0.2, style: { display: "none" } },
+            createElement(Component$$1, null)));
+    };
     GraphPolyline.prototype.lineName = function (income) {
         var _a = this.props, id = _a.node.id, cellSize = _a.cellSize, padding = _a.padding;
         var next = income.next, _b = income.edgeNames, edgeNames = _b === void 0 ? [] : _b;
-        var _c = this.getLineNameCoords(income), x = _c[0], y = _c[1];
+        var _c = this.getLineNameCoords(income), nameX = _c[0], nameY = _c[1];
+        var _d = this.getLineComponentCoords(income), circleX = _d[0], circleY = _d[1];
         var size = this.getSize(cellSize, padding);
         var index = next.findIndex(function (uuid) { return uuid === id; });
         return (createElement(Fragment, null,
-            createElement("circle", { cx: x + size * 1.5, cy: y + size * 0.5, r: cellSize * 0.15, style: {
+            createElement("circle", { cx: circleX + size * 0.5, cy: circleY + size * 0.5, r: cellSize * 0.15, style: {
                     stroke: "none",
                     fill: "fff"
                 } }),
-            !!edgeNames[index] && (createElement("text", { x: x + size * 1.5, y: y + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
-                    stroke: "none",
-                    fill: "#2d578b"
+            !!edgeNames[index] && (createElement("text", { x: nameX + size * 1.5, y: nameY + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
+                    stroke: "#fff",
+                    strokeWidth: 3,
+                    fill: "#2d578b",
+                    paintOrder: "stroke"
                 } }, edgeNames[index]))));
     };
     GraphPolyline.prototype.getLinePoints = function (line) {
@@ -1443,11 +1472,11 @@ var GraphPolyline = /** @class */ (function (_super) {
             .reverse()
             .join(" ");
     };
-    GraphPolyline.prototype.stroke = function (lines, index) {
-        if (lines.length > 1 && index) {
+    GraphPolyline.prototype.stroke = function (lines, line) {
+        if (lines.length > 1 && line.line.length > 2) {
             return null;
         }
-        return createElement("polyline", { fill: "none", className: "node-line", points: this.getLinePoints(lines[index]), style: {
+        return createElement("polyline", { fill: "none", className: "node-line", points: this.getLinePoints(line), style: {
                 strokeWidth: 6,
                 stroke: "#ffffff"
             } });
@@ -1455,15 +1484,16 @@ var GraphPolyline = /** @class */ (function (_super) {
     GraphPolyline.prototype.renderLines = function (node, lines) {
         var _this = this;
         var markerHash = uniqueId("marker-");
-        return lines.map(function (line, index) { return (createElement("g", __assign({ key: "line-" + node.id + "-" + line.income.id }, _this.getLineHandlers(line.node, line.income), { style: {
+        return lines.map(function (line) { return (createElement("g", __assign({ key: "line-" + node.id + "-" + line.income.id }, _this.getLineHandlers(line.node, line.income), { style: {
                 strokeWidth: 2,
                 fill: "#2d578b",
                 stroke: "#2d578b"
             } }),
             _this.lineName(line.income),
             createElement(DefaultMarker, { id: _this.getMarkerId(markerHash, line.income.id), width: 12, height: 12 }),
-            _this.stroke(lines, index),
-            createElement("polyline", __assign({}, _this.getMarker(markerHash, line.income.id), { fill: "none", className: "node-line", points: _this.getLinePoints(line) })))); });
+            _this.stroke(lines, line),
+            createElement("polyline", __assign({}, _this.getMarker(markerHash, line.income.id), { fill: "none", className: "node-line", points: _this.getLinePoints(line) })),
+            _this.lineComponent(line.income))); });
     };
     GraphPolyline.prototype.render = function () {
         var _a = this.props, node = _a.node, nodesMap = _a.nodesMap, cellSize = _a.cellSize, padding = _a.padding;

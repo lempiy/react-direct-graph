@@ -12,6 +12,7 @@ import { GraphEventFunc, DataProps } from "./element.types";
 import { DefaultMarker } from "./marker-default";
 
 export type ViewProps<T> = {
+    edgeComponent?: React.ComponentType<T>;
     onEdgeMouseEnter?: GraphEventFunc<T>;
     onEdgeMouseLeave?: GraphEventFunc<T>;
     onEdgeClick?: GraphEventFunc<T>;
@@ -256,18 +257,63 @@ export class GraphPolyline<T> extends React.Component<
         return [x, y];
     };
 
+    getLineComponentCoords(income: IMatrixNode<T>): number[] {
+        const { node, node: {id}, cellSize, padding } = this.props;
+        const index = income.next.findIndex(uuid => uuid === id);
+
+        const [nodeX, nodeY] = this.getCoords(cellSize, padding, node);
+        const [incomeX, incomeY] = this.getCoords(cellSize, padding, income);
+
+        const x = incomeX/2 + nodeX/2;
+
+        let y = nodeY;
+        if (incomeY > nodeY) {
+            y = incomeY;
+        }
+        if (incomeY === nodeY) {
+            y = y + cellSize * index;
+        }
+
+        return [x, y];
+    };
+
+    lineComponent(income: IMatrixNode<T>) {
+        const { cellSize, padding, edgeComponent } = this.props;
+        const [x, y] = this.getLineComponentCoords(income);
+        const size = this.getSize(cellSize, padding);
+
+        if (!edgeComponent) {
+            return null;
+        }
+
+        const Component = edgeComponent;
+        return (
+            <foreignObject
+                className="edge-icon"
+                x={x + size * 0.5 - cellSize * 0.1}
+                y={y + size * 0.5 - cellSize * 0.1}
+                width={cellSize * 0.2}
+                height={cellSize * 0.2}
+                style={{ display: "none" }}
+            >
+                <Component />
+            </foreignObject>
+        );
+    }
+
     lineName(income: IMatrixNode<T>) {
         const { node: {id}, cellSize, padding } = this.props;
         const { next, edgeNames = [] } = income;
 
-        const [x, y] = this.getLineNameCoords(income);
+        const [nameX, nameY] = this.getLineNameCoords(income);
+        const [circleX, circleY] = this.getLineComponentCoords(income);
         const size = this.getSize(cellSize, padding);
         const index = next.findIndex(uuid => uuid === id);
         return (
             <>
                 <circle
-                    cx={x + size * 1.5}
-                    cy={y + size * 0.5}
+                    cx={circleX + size * 0.5}
+                    cy={circleY + size * 0.5}
                     r={cellSize * 0.15}
                     style={{
                         stroke: "none",
@@ -276,13 +322,15 @@ export class GraphPolyline<T> extends React.Component<
                 />
                 {!!edgeNames[index] && (
                     <text
-                        x={x + size * 1.5}
-                        y={y + size * 0.3}
+                        x={nameX + size * 1.5}
+                        y={nameY + size * 0.3}
                         textAnchor="middle"
                         dominantBaseline="middle"
                         style={{
-                            stroke: "none",
-                            fill: "#2d578b"
+                            stroke: "#fff",
+                            strokeWidth: 3,
+                            fill: "#2d578b",
+                            paintOrder: "stroke"
                         }}
                     >
                         {edgeNames[index]}
@@ -299,14 +347,14 @@ export class GraphPolyline<T> extends React.Component<
             .join(" ");
     }
 
-    stroke(lines: LineBranch<T>[], index: number) {
-        if (lines.length > 1 && index) {
+    stroke(lines: LineBranch<T>[], line: LineBranch<T>) {
+        if (lines.length > 1 && line.line.length > 2 ) {
             return null;
         }
         return <polyline
             fill={"none"}
             className="node-line"
-            points={this.getLinePoints(lines[index])}
+            points={this.getLinePoints(line)}
             style={{
                 strokeWidth: 6,
                 stroke: "#ffffff"
@@ -316,7 +364,7 @@ export class GraphPolyline<T> extends React.Component<
 
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]) {
         const markerHash = uniqueId("marker-");
-        return lines.map((line, index) => (
+        return lines.map(line => (
             <g
                 key={`line-${node.id}-${line.income.id}`}
                 {...this.getLineHandlers(line.node, line.income)}
@@ -332,13 +380,14 @@ export class GraphPolyline<T> extends React.Component<
                     width={12}
                     height={12}
                 />
-                {this.stroke(lines, index)}
+                {this.stroke(lines, line)}
                 <polyline
                     {...this.getMarker(markerHash, line.income.id)}
                     fill={"none"}
                     className="node-line"
                     points={this.getLinePoints(line)}
                 />
+                {this.lineComponent(line.income)}
             </g>
         ));
     }

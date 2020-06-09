@@ -2,6 +2,7 @@ import * as React from "react";
 import { IMatrixNode } from "../core";
 import { GraphEventFunc, DataProps } from "./element.types";
 export declare type ViewProps<T> = {
+    edgeComponent?: React.ComponentType<T>;
     onEdgeMouseEnter?: GraphEventFunc<T>;
     onEdgeMouseLeave?: GraphEventFunc<T>;
     onEdgeClick?: GraphEventFunc<T>;
@@ -47,9 +48,11 @@ export declare class GraphPolyline<T> extends React.Component<DataProps<T> & Vie
     };
     getMarkerId(markerHash: string, incomeId: string): string;
     getLineNameCoords(income: IMatrixNode<T>): number[];
+    getLineComponentCoords(income: IMatrixNode<T>): number[];
+    lineComponent(income: IMatrixNode<T>): JSX.Element | null;
     lineName(income: IMatrixNode<T>): JSX.Element;
     getLinePoints(line: LineBranch<T>): string;
-    stroke(lines: LineBranch<T>[], index: number): JSX.Element | null;
+    stroke(lines: LineBranch<T>[], line: LineBranch<T>): JSX.Element | null;
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]): JSX.Element[];
     render(): 0 | JSX.Element;
 }
