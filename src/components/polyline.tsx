@@ -292,9 +292,31 @@ export class GraphPolyline<T> extends React.Component<
         )
     }
 
+    getLinePoints(line: LineBranch<T>): string {
+        return line.line
+            .map(point => point.join(","))
+            .reverse()
+            .join(" ");
+    }
+
+    stroke(lines: LineBranch<T>[], index: number) {
+        if (lines.length > 1 && index) {
+            return null;
+        }
+        return <polyline
+            fill={"none"}
+            className="node-line"
+            points={this.getLinePoints(lines[index])}
+            style={{
+                strokeWidth: 6,
+                stroke: "#ffffff"
+            }}
+        />;
+    }
+
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]) {
         const markerHash = uniqueId("marker-");
-        return lines.map(line => (
+        return lines.map((line, index) => (
             <g
                 key={`line-${node.id}-${line.income.id}`}
                 {...this.getLineHandlers(line.node, line.income)}
@@ -310,14 +332,12 @@ export class GraphPolyline<T> extends React.Component<
                     width={12}
                     height={12}
                 />
+                {this.stroke(lines, index)}
                 <polyline
                     {...this.getMarker(markerHash, line.income.id)}
                     fill={"none"}
                     className="node-line"
-                    points={line.line
-                        .reverse()
-                        .map(point => point.join(","))
-                        .join(" ")}
+                    points={this.getLinePoints(line)}
                 />
             </g>
         ));

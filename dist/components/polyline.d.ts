@@ -48,6 +48,8 @@ export declare class GraphPolyline<T> extends React.Component<DataProps<T> & Vie
     getMarkerId(markerHash: string, incomeId: string): string;
     getLineNameCoords(income: IMatrixNode<T>): number[];
     lineName(income: IMatrixNode<T>): JSX.Element;
+    getLinePoints(line: LineBranch<T>): string;
+    stroke(lines: LineBranch<T>[], index: number): JSX.Element | null;
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]): JSX.Element[];
     render(): 0 | JSX.Element;
 }

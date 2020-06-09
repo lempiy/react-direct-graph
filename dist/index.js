@@ -1441,20 +1441,33 @@ var GraphPolyline = /** @class */ (function (_super) {
                     fill: "#2d578b"
                 } }, edgeNames[index]))));
     };
+    GraphPolyline.prototype.getLinePoints = function (line) {
+        return line.line
+            .map(function (point) { return point.join(","); })
+            .reverse()
+            .join(" ");
+    };
+    GraphPolyline.prototype.stroke = function (lines, index) {
+        if (lines.length > 1 && index) {
+            return null;
+        }
+        return React.createElement("polyline", { fill: "none", className: "node-line", points: this.getLinePoints(lines[index]), style: {
+                strokeWidth: 6,
+                stroke: "#ffffff"
+            } });
+    };
     GraphPolyline.prototype.renderLines = function (node, lines) {
         var _this = this;
         var markerHash = uniqueId("marker-");
-        return lines.map(function (line) { return (React.createElement("g", __assign({ key: "line-" + node.id + "-" + line.income.id }, _this.getLineHandlers(line.node, line.income), { style: {
+        return lines.map(function (line, index) { return (React.createElement("g", __assign({ key: "line-" + node.id + "-" + line.income.id }, _this.getLineHandlers(line.node, line.income), { style: {
                 strokeWidth: 2,
                 fill: "#2d578b",
                 stroke: "#2d578b"
             } }),
             _this.lineName(line.income),
             React.createElement(DefaultMarker, { id: _this.getMarkerId(markerHash, line.income.id), width: 12, height: 12 }),
-            React.createElement("polyline", __assign({}, _this.getMarker(markerHash, line.income.id), { fill: "none", className: "node-line", points: line.line
-                    .reverse()
-                    .map(function (point) { return point.join(","); })
-                    .join(" ") })))); });
+            _this.stroke(lines, index),
+            React.createElement("polyline", __assign({}, _this.getMarker(markerHash, line.income.id), { fill: "none", className: "node-line", points: _this.getLinePoints(line) })))); });
     };
     GraphPolyline.prototype.render = function () {
         var _a = this.props, node = _a.node, nodesMap = _a.nodesMap, cellSize = _a.cellSize, padding = _a.padding;
