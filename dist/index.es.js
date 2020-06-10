@@ -1064,8 +1064,8 @@ function styleInject(css, ref) {
   }
 }
 
-var css = ".node-icon-default_nodeOrange__2pzZe path {\n    fill: #e25300;\n    stroke: #e25300;\n}\n\n.node-icon-default_nodeGreen__2fWrs path {\n    fill: #008c15;\n    stroke: #008c15;\n}\n\n.node-icon-default_nodeBlue__2rASh path {\n    fill: #193772;\n    stroke: #193772;\n}\n\n.node-icon-default_nodePurple__2Ilol {\n    fill: #6304a3;\n    stroke: #6304a3;\n}\n\n.node-icon-default_nodeDefaultIcon__3r8qv text {\n    font-size: 14px;\n}\n\n.node-icon-default_nodeDefaultIconGroup__2mmJl g {\n    fill: #ffffff;\n    stroke: #ffffff;\n}\n";
-var styles = {"nodeOrange":"node-icon-default_nodeOrange__2pzZe","nodeGreen":"node-icon-default_nodeGreen__2fWrs","nodeBlue":"node-icon-default_nodeBlue__2rASh","nodePurple":"node-icon-default_nodePurple__2Ilol","nodeDefaultIcon":"node-icon-default_nodeDefaultIcon__3r8qv","nodeDefaultIconGroup":"node-icon-default_nodeDefaultIconGroup__2mmJl"};
+var css = ".node-icon-default_nodeOrange__2AWeX path {\r\n    fill: #e25300;\r\n    stroke: #e25300;\r\n}\r\n\r\n.node-icon-default_nodeGreen__3NVbT path {\r\n    fill: #008c15;\r\n    stroke: #008c15;\r\n}\r\n\r\n.node-icon-default_nodeBlue__17-H_ path {\r\n    fill: #193772;\r\n    stroke: #193772;\r\n}\r\n\r\n.node-icon-default_nodePurple__1G2hv {\r\n    fill: #6304a3;\r\n    stroke: #6304a3;\r\n}\r\n\r\n.node-icon-default_nodeDefaultIcon__2nmVZ text {\r\n    font-size: 14px;\r\n}\r\n\r\n.node-icon-default_nodeDefaultIconGroup__1hIuw g {\r\n    fill: #ffffff;\r\n    stroke: #ffffff;\r\n}\r\n";
+var styles = {"nodeOrange":"node-icon-default_nodeOrange__2AWeX","nodeGreen":"node-icon-default_nodeGreen__3NVbT","nodeBlue":"node-icon-default_nodeBlue__17-H_","nodePurple":"node-icon-default_nodePurple__1G2hv","nodeDefaultIcon":"node-icon-default_nodeDefaultIcon__2nmVZ","nodeDefaultIconGroup":"node-icon-default_nodeDefaultIconGroup__1hIuw"};
 styleInject(css);
 
 var DefaultNodeIcon = /** @class */ (function (_super) {
@@ -1457,7 +1457,8 @@ var GraphPolyline = /** @class */ (function (_super) {
         return (createElement(Fragment, null,
             createElement("circle", { cx: circleX + size * 0.5, cy: circleY + size * 0.5, r: cellSize * 0.15, style: {
                     stroke: "none",
-                    fill: "fff"
+                    fill: "fff",
+                    opacity: 0.01
                 } }),
             !!edgeNames[index] && (createElement("text", { x: nameX + size * 1.5, y: nameY + size * 0.3, textAnchor: "middle", dominantBaseline: "middle", style: {
                     stroke: "#fff",
@@ -1472,15 +1473,6 @@ var GraphPolyline = /** @class */ (function (_super) {
             .reverse()
             .join(" ");
     };
-    GraphPolyline.prototype.stroke = function (lines, line) {
-        if (lines.length > 1 && line.line.length > 2) {
-            return null;
-        }
-        return createElement("polyline", { fill: "none", className: "node-line", points: this.getLinePoints(line), style: {
-                strokeWidth: 6,
-                stroke: "#ffffff"
-            } });
-    };
     GraphPolyline.prototype.renderLines = function (node, lines) {
         var _this = this;
         var markerHash = uniqueId("marker-");
@@ -1491,7 +1483,10 @@ var GraphPolyline = /** @class */ (function (_super) {
             } }),
             _this.lineName(line.income),
             createElement(DefaultMarker, { id: _this.getMarkerId(markerHash, line.income.id), width: 12, height: 12 }),
-            _this.stroke(lines, line),
+            createElement("polyline", { fill: "none", className: "node-line", points: _this.getLinePoints(line), style: {
+                    strokeWidth: 6,
+                    stroke: "#ffffff"
+                } }),
             createElement("polyline", __assign({}, _this.getMarker(markerHash, line.income.id), { fill: "none", className: "node-line", points: _this.getLinePoints(line) })),
             _this.lineComponent(line.income))); });
     };

@@ -317,7 +317,8 @@ export class GraphPolyline<T> extends React.Component<
                     r={cellSize * 0.15}
                     style={{
                         stroke: "none",
-                        fill: "fff"
+                        fill: "fff",
+                        opacity: 0.01
                     }}
                 />
                 {!!edgeNames[index] && (
@@ -347,21 +348,6 @@ export class GraphPolyline<T> extends React.Component<
             .join(" ");
     }
 
-    stroke(lines: LineBranch<T>[], line: LineBranch<T>) {
-        if (lines.length > 1 && line.line.length > 2 ) {
-            return null;
-        }
-        return <polyline
-            fill={"none"}
-            className="node-line"
-            points={this.getLinePoints(line)}
-            style={{
-                strokeWidth: 6,
-                stroke: "#ffffff"
-            }}
-        />;
-    }
-
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]) {
         const markerHash = uniqueId("marker-");
         return lines.map(line => (
@@ -380,7 +366,15 @@ export class GraphPolyline<T> extends React.Component<
                     width={12}
                     height={12}
                 />
-                {this.stroke(lines, line)}
+                <polyline
+                    fill={"none"}
+                    className="node-line"
+                    points={this.getLinePoints(line)}
+                    style={{
+                        strokeWidth: 6,
+                        stroke: "#ffffff"
+                    }}
+                />
                 <polyline
                     {...this.getMarker(markerHash, line.income.id)}
                     fill={"none"}
