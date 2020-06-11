@@ -12,6 +12,7 @@ import { GraphEventFunc, DataProps } from "./element.types";
 import { DefaultMarker } from "./marker-default";
 
 export type ViewProps<T> = {
+    edgeComponent?: React.ComponentType<T>;
     onEdgeMouseEnter?: GraphEventFunc<T>;
     onEdgeMouseLeave?: GraphEventFunc<T>;
     onEdgeClick?: GraphEventFunc<T>;
@@ -238,34 +239,99 @@ export class GraphPolyline<T> extends React.Component<
         return `${markerHash}-${node.id.trim()}-${incomeId.trim()}`;
     }
 
-    lineName(income: IMatrixNode<T>) {
+    getLineNameCoords(income: IMatrixNode<T>): number[] {
         const { node, node: {id}, cellSize, padding } = this.props;
-        const {next, edgeNames = []} = income;
-        const [x, nodeY] = this.getCoords(cellSize, padding, node);
-        const [, incomeY] = this.getCoords(cellSize, padding, income);
-        const y = incomeY > nodeY ? incomeY : nodeY;
+        const index = income.next.findIndex(uuid => uuid === id);
+
+        const [, nodeY] = this.getCoords(cellSize, padding, node);
+        const [x, incomeY] = this.getCoords(cellSize, padding, income);
+
+        let y = nodeY;
+        if (incomeY > nodeY) {
+            y = incomeY;
+        }
+        if (incomeY === nodeY) {
+            y = y + cellSize * index;
+        }
+
+        return [x, y];
+    };
+
+    getLineComponentCoords(income: IMatrixNode<T>): number[] {
+        const { node, node: {id}, cellSize, padding } = this.props;
+        const index = income.next.findIndex(uuid => uuid === id);
+
+        const [nodeX, nodeY] = this.getCoords(cellSize, padding, node);
+        const [incomeX, incomeY] = this.getCoords(cellSize, padding, income);
+
+        const x = incomeX/2 + nodeX/2;
+
+        let y = nodeY;
+        if (incomeY > nodeY) {
+            y = incomeY;
+        }
+        if (incomeY === nodeY) {
+            y = y + cellSize * index;
+        }
+
+        return [x, y];
+    };
+
+    lineComponent(income: IMatrixNode<T>) {
+        const { cellSize, padding, edgeComponent } = this.props;
+        const [x, y] = this.getLineComponentCoords(income);
+        const size = this.getSize(cellSize, padding);
+
+        if (!edgeComponent) {
+            return null;
+        }
+
+        const Component = edgeComponent;
+        return (
+            <foreignObject
+                className="edge-icon"
+                x={x + size * 0.5 - cellSize * 0.1}
+                y={y + size * 0.5 - cellSize * 0.1}
+                width={cellSize * 0.2}
+                height={cellSize * 0.2}
+                style={{ display: "none" }}
+            >
+                <Component />
+            </foreignObject>
+        );
+    }
+
+    lineName(income: IMatrixNode<T>) {
+        const { node: {id}, cellSize, padding } = this.props;
+        const { next, edgeNames = [] } = income;
+
+        const [nameX, nameY] = this.getLineNameCoords(income);
+        const [circleX, circleY] = this.getLineComponentCoords(income);
         const size = this.getSize(cellSize, padding);
         const index = next.findIndex(uuid => uuid === id);
         return (
             <>
                 <circle
-                    cx={x - size * 0.5}
-                    cy={y + size * 0.5}
+                    cx={circleX + size * 0.5}
+                    cy={circleY + size * 0.5}
                     r={cellSize * 0.15}
                     style={{
                         stroke: "none",
-                        fill: "fff"
+                        fill: "fff",
+                        opacity: 0.01
                     }}
                 />
                 {!!edgeNames[index] && (
                     <text
-                        x={x - size * 0.5}
-                        y={y + size * 0.3}
+                        x={nameX + size * 1.5}
+                        y={nameY + size * 0.3}
                         textAnchor="middle"
                         dominantBaseline="middle"
                         style={{
-                            stroke: "none",
-                            fill: "#2d578b"
+                            stroke: "#fff",
+                            strokeWidth: 3,
+                            fill: "#2d578b",
+                            paintOrder: "stroke"
                         }}
                     >
                         {edgeNames[index]}
@@ -273,6 +339,13 @@ export class GraphPolyline<T> extends React.Component<
                 )}
             </>
         )
+    }
+
+    getLinePoints(line: LineBranch<T>): string {
+        return line.line
+            .map(point => point.join(","))
+            .reverse()
+            .join(" ");
     }
 
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]) {
@@ -294,14 +367,21 @@ export class GraphPolyline<T> extends React.Component<
                     height={12}
                 />
                 <polyline
+                    fill={"none"}
+                    className="node-line"
+                    points={this.getLinePoints(line)}
+                    style={{
+                        strokeWidth: 6,
+                        stroke: "#ffffff"
+                    }}
+                />
+                <polyline
                     {...this.getMarker(markerHash, line.income.id)}
                     fill={"none"}
                     className="node-line"
-                    points={line.line
-                        .reverse()
-                        .map(point => point.join(","))
-                        .join(" ")}
+                    points={this.getLinePoints(line)}
                 />
+                {this.lineComponent(line.income)}
             </g>
         ));
     }
