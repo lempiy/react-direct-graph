@@ -1,6 +1,6 @@
 {
     "name": "react-direct-graph",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "description": "React component for drawing direct graphs with rectangular (non-curve) edges",
     "author": "lempiy",
     "license": "MIT",
