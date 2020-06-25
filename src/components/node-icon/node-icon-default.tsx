@@ -1,6 +1,6 @@
-import { GraphNodeIconComponentProps } from "./node-icon";
-import { INodeInput } from "../core";
 import * as React from "react";
+import { GraphNodeIconComponentProps } from "./node-icon";
+import { INodeInput } from "../../core";
 import styles from "./node-icon-default.css";
 
 export class DefaultNodeIcon<T> extends React.Component<

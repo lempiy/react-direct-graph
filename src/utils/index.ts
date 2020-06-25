@@ -1,4 +1,6 @@
-import { AnchorMargin, INodeOutput } from "../core";
+import {AnchorMargin, IMatrixNode, INodeOutput} from "../core";
+import {GraphEventFunc} from "../components/element";
+import * as React from "react";
 
 export enum VectorDirection {
     Top = "top",
@@ -87,21 +89,21 @@ export const getCellEntry = (
 ): number[] => {
     switch (direction) {
         case VectorDirection.Top:
-            var [x] = getCellCenter(cellSize, padding, cellX, cellY, margin);
-            var y = cellY * cellSize + padding;
-            return [x, y];
+            const [xTop] = getCellCenter(cellSize, padding, cellX, cellY, margin);
+            const yTop = cellY * cellSize + padding;
+            return [xTop, yTop];
         case VectorDirection.Bottom:
-            var [x] = getCellCenter(cellSize, padding, cellX, cellY, margin);
-            var y = cellY * cellSize + (cellSize - padding);
-            return [x, y];
+            const [xBottom] = getCellCenter(cellSize, padding, cellX, cellY, margin);
+            const yBottom = cellY * cellSize + (cellSize - padding);
+            return [xBottom, yBottom];
         case VectorDirection.Right:
-            var [, y] = getCellCenter(cellSize, padding, cellX, cellY, margin);
-            var x = cellX * cellSize + (cellSize - padding);
-            return [x, y];
+            const [, yRight] = getCellCenter(cellSize, padding, cellX, cellY, margin);
+            const xRight = cellX * cellSize + (cellSize - padding);
+            return [xRight, yRight];
         case VectorDirection.Left:
-            var [, y] = getCellCenter(cellSize, padding, cellX, cellY, margin);
-            var x = cellX * cellSize + padding;
-            return [x, y];
+            const [, yLeft] = getCellCenter(cellSize, padding, cellX, cellY, margin);
+            const xLeft = cellX * cellSize + padding;
+            return [xLeft, yLeft];
     }
 };
 
@@ -114,3 +116,35 @@ function gen4(): string {
 export function uniqueId(prefix: string): string {
     return (prefix || "").concat([gen4(), gen4(), gen4(), gen4()].join("-"));
 }
+
+export function getSize(cellSize: number, padding: number): number {
+    return cellSize - padding * 2;
+}
+
+export function getCoords<T>(
+    cellSize: number,
+    padding: number,
+    node: IMatrixNode<T>
+): number[] {
+    return [node.x * cellSize + padding, node.y * cellSize + padding];
+}
+
+export function checkAnchorRenderIncomes<T>(node: IMatrixNode<T>) {
+    if (node.renderIncomes.length != 1)
+        throw new Error(
+            `Anchor has non 1 income: ${
+                node.id
+            }. Incomes ${node.renderIncomes.join(",")}`
+        );
+}
+
+export const getAllIncomes = <T>(
+    node: IMatrixNode<T>,
+    nodesMap: { [id: string]: IMatrixNode<T> }
+): IMatrixNode<T>[] => node.renderIncomes.map(id => nodesMap[id]);
+
+export const wrapEventHandler = <T>(
+    cb: GraphEventFunc<T>,
+    node: IMatrixNode<T>,
+    incomes: IMatrixNode<T>[]
+): ((e: React.MouseEvent) => void) => (e: React.MouseEvent) => cb(e, node, incomes);

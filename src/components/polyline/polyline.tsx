@@ -1,90 +1,46 @@
 import * as React from "react";
-import { IMatrixNode, AnchorMargin } from "../core";
+import { DefaultMarker } from "../marker-default";
+import { getPointWithResolver } from "./getPointWithResolver";
 import {
-    VectorDirection,
-    getVectorDirection,
+    getSize,
+    uniqueId,
+    getCoords,
+    getAllIncomes,
     getEdgeMargins,
-    getCellCenter,
-    getCellEntry,
-    uniqueId
-} from "../utils";
-import { GraphEventFunc, DataProps } from "./element.types";
-import { DefaultMarker } from "./marker-default";
-
-export type ViewProps<T> = {
-    edgeComponent?: React.ComponentType<T>;
-    onEdgeMouseEnter?: GraphEventFunc<T>;
-    onEdgeMouseLeave?: GraphEventFunc<T>;
-    onEdgeClick?: GraphEventFunc<T>;
-    cellSize: number;
-    padding: number;
-};
-
-interface LineBranch<T> {
-    node: IMatrixNode<T>;
-    income: IMatrixNode<T>;
-    line: number[][];
-}
-
-function getPointWithResolver<T>(
-    direction: VectorDirection,
-    cellSize: number,
-    padding: number,
-    item: IMatrixNode<T>,
-    margin: AnchorMargin
-): number[] {
-    let x1, y1;
-    if (item.isAnchor) {
-        [x1, y1] = getCellCenter(cellSize, padding, item.x, item.y, margin);
-    } else {
-        [x1, y1] = getCellEntry(
-            direction,
-            cellSize,
-            padding,
-            item.x,
-            item.y,
-            margin
-        );
-    }
-    return [x1, y1];
-}
-
-const pointResolversMap: { [key in VectorDirection]: VectorDirection[] } = {
-    [VectorDirection.Top]: [VectorDirection.Top, VectorDirection.Bottom],
-    [VectorDirection.Bottom]: [VectorDirection.Bottom, VectorDirection.Top],
-    [VectorDirection.Right]: [VectorDirection.Right, VectorDirection.Left],
-    [VectorDirection.Left]: [VectorDirection.Left, VectorDirection.Right]
-};
+    wrapEventHandler,
+    getVectorDirection,
+    checkAnchorRenderIncomes,
+} from "../../utils";
+import { IMatrixNode } from "../../core";
+import { DataProps } from "../element";
+import { LineBranch, pointResolversMap, ViewProps } from "./polyline.types";
 
 export class GraphPolyline<T> extends React.Component<
     DataProps<T> & ViewProps<T>
 > {
-    getPolyline(
+    getPolyline = (
         cellSize: number,
         padding: number,
         branch: IMatrixNode<T>[]
-    ): number[][] {
-        return branch
-            .filter((_, i) => {
-                return i + 1 !== branch.length;
-            })
-            .reduce((result: number[][], node, i) => {
-                const nextNode = branch[i + 1];
-                const line = this.getLineToIncome(
-                    cellSize,
-                    padding,
-                    node,
-                    nextNode
-                );
-                const [x1, y1, x2, y2] = line.line;
-                if (i === 0) {
-                    result.push([x1, y1], [x2, y2]);
-                } else {
-                    result.push([x2, y2]);
-                }
-                return result;
-            }, []);
-    }
+    ): number[][] => branch
+        .filter((_, i) => (i + 1) !== branch.length)
+        .reduce((result: number[][], node, i) => {
+            const nextNode = branch[i + 1];
+            const line = this.getLineToIncome(
+                cellSize,
+                padding,
+                node,
+                nextNode
+            );
+            const [x1, y1, x2, y2] = line.line;
+            if (i === 0) {
+                result.push([x1, y1], [x2, y2]);
+            } else {
+                result.push([x2, y2]);
+            }
+            return result;
+        }, []);
+
     getLineToIncome(
         cellSize: number,
         padding: number,
@@ -121,58 +77,24 @@ export class GraphPolyline<T> extends React.Component<
         };
     }
 
-    getLines(
+    getLines = (
         cellSize: number,
         padding: number,
         node: IMatrixNode<T>,
         nodesMap: { [id: string]: IMatrixNode<T> }
-    ): LineBranch<T>[] {
-        const branches = this.getNodeBranches(node, nodesMap);
-        return branches.map(branch => ({
-            node: node,
-            income: branch[branch.length - 1],
-            line: this.getPolyline(cellSize, padding, branch)
-        }));
-    }
-
-    getCoords(
-        cellSize: number,
-        padding: number,
-        node: IMatrixNode<T>
-    ): number[] {
-        return [node.x * cellSize + padding, node.y * cellSize + padding];
-    }
-
-    getSize(cellSize: number, padding: number): number {
-        return cellSize - padding * 2;
-    }
-
-    wrapEventHandler = (
-        cb: GraphEventFunc<T>,
-        node: IMatrixNode<T>,
-        incomes: IMatrixNode<T>[]
-    ): ((e: React.MouseEvent) => void) => {
-        return (e: React.MouseEvent) => cb(e, node, incomes);
-    };
-
-    diveToNodeIncome = (
-        node: IMatrixNode<T>,
-        nodesMap: { [id: string]: IMatrixNode<T> }
-    ): IMatrixNode<T> => {
-        if (!node.isAnchor) return node;
-        this.checkAnchorRenderIncomes(node);
-        return this.diveToNodeIncome(nodesMap[node.renderIncomes[0]], nodesMap);
-    };
+    ): LineBranch<T>[] => this.getNodeBranches(node, nodesMap).map(branch => ({
+        node: node,
+        income: branch[branch.length - 1],
+        line: this.getPolyline(cellSize, padding, branch)
+    }));
 
     getNodeBranches = (
         node: IMatrixNode<T>,
         nodesMap: { [id: string]: IMatrixNode<T> }
-    ): IMatrixNode<T>[][] => {
-        return this.getAllIncomes(node, nodesMap).map(n => [
-            node,
-            ...this.getIncomeBranch(n, nodesMap)
-        ]);
-    };
+    ): IMatrixNode<T>[][] => getAllIncomes<T>(node, nodesMap).map(n => [
+        node,
+        ...this.getIncomeBranch(n, nodesMap)
+    ]);
 
     getIncomeBranch = (
         lastIncome: IMatrixNode<T>,
@@ -180,27 +102,13 @@ export class GraphPolyline<T> extends React.Component<
     ): IMatrixNode<T>[] => {
         const branch: IMatrixNode<T>[] = [];
         while (lastIncome.isAnchor) {
-            this.checkAnchorRenderIncomes(lastIncome);
+            checkAnchorRenderIncomes<T>(lastIncome);
             branch.push(lastIncome);
             lastIncome = nodesMap[lastIncome.renderIncomes[0]];
         }
         branch.push(lastIncome);
         return branch;
     };
-
-    checkAnchorRenderIncomes(node: IMatrixNode<T>) {
-        if (node.renderIncomes.length != 1)
-            throw new Error(
-                `Anchor has non 1 income: ${
-                    node.id
-                }. Incomes ${node.renderIncomes.join(",")}`
-            );
-    }
-
-    getAllIncomes = (
-        node: IMatrixNode<T>,
-        nodesMap: { [id: string]: IMatrixNode<T> }
-    ): IMatrixNode<T>[] => node.renderIncomes.map(id => nodesMap[id]);
 
     getLineHandlers(
         node: IMatrixNode<T>,
@@ -211,17 +119,17 @@ export class GraphPolyline<T> extends React.Component<
             [eventName: string]: (e: React.MouseEvent) => void;
         } = {};
         if (onEdgeClick)
-            handlers.onClick = this.wrapEventHandler(onEdgeClick, node, [
+            handlers.onClick = wrapEventHandler<T>(onEdgeClick, node, [
                 income
             ]);
         if (onEdgeMouseEnter)
-            handlers.onMouseEnter = this.wrapEventHandler(
+            handlers.onMouseEnter = wrapEventHandler<T>(
                 onEdgeMouseEnter,
                 node,
                 [income]
             );
         if (onEdgeMouseLeave)
-            handlers.onMouseLeave = this.wrapEventHandler(
+            handlers.onMouseLeave = wrapEventHandler<T>(
                 onEdgeMouseLeave,
                 node,
                 [income]
@@ -243,8 +151,8 @@ export class GraphPolyline<T> extends React.Component<
         const { node, node: {id}, cellSize, padding } = this.props;
         const index = income.next.findIndex(uuid => uuid === id);
 
-        const [, nodeY] = this.getCoords(cellSize, padding, node);
-        const [x, incomeY] = this.getCoords(cellSize, padding, income);
+        const [, nodeY] = getCoords<T>(cellSize, padding, node);
+        const [x, incomeY] = getCoords<T>(cellSize, padding, income);
 
         let y = nodeY;
         if (incomeY > nodeY) {
@@ -261,8 +169,8 @@ export class GraphPolyline<T> extends React.Component<
         const { node, node: {id}, cellSize, padding } = this.props;
         const index = income.next.findIndex(uuid => uuid === id);
 
-        const [nodeX, nodeY] = this.getCoords(cellSize, padding, node);
-        const [incomeX, incomeY] = this.getCoords(cellSize, padding, income);
+        const [nodeX, nodeY] = getCoords<T>(cellSize, padding, node);
+        const [incomeX, incomeY] = getCoords<T>(cellSize, padding, income);
 
         const x = incomeX/2 + nodeX/2;
 
@@ -280,7 +188,7 @@ export class GraphPolyline<T> extends React.Component<
     lineComponent(income: IMatrixNode<T>) {
         const { cellSize, padding, edgeComponent } = this.props;
         const [x, y] = this.getLineComponentCoords(income);
-        const size = this.getSize(cellSize, padding);
+        const size = getSize(cellSize, padding);
 
         if (!edgeComponent) {
             return null;
@@ -307,7 +215,7 @@ export class GraphPolyline<T> extends React.Component<
 
         const [nameX, nameY] = this.getLineNameCoords(income);
         const [circleX, circleY] = this.getLineComponentCoords(income);
-        const size = this.getSize(cellSize, padding);
+        const size = getSize(cellSize, padding);
         const index = next.findIndex(uuid => uuid === id);
         return (
             <>
@@ -341,12 +249,10 @@ export class GraphPolyline<T> extends React.Component<
         )
     }
 
-    getLinePoints(line: LineBranch<T>): string {
-        return line.line
-            .map(point => point.join(","))
-            .reverse()
-            .join(" ");
-    }
+    getLinePoints = (line: LineBranch<T>): string => line.line
+        .map(point => point.join(","))
+        .reverse()
+        .join(" ");
 
     renderLines(node: IMatrixNode<T>, lines: LineBranch<T>[]) {
         const markerHash = uniqueId("marker-");

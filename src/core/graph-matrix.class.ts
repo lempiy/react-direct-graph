@@ -111,33 +111,43 @@ export class GraphMatrix<T> extends GraphStruct<T> {
     }
 
     private _handleLoopEdges(item: INodeOutput<T>, state: State<T>): LoopNode<T>[] | null {
-        const { mtx } = state;
+        const { mtx, x, y } = state;
         const loops = this.loops(item.id);
         if (!loops) throw new Error(`No loops found for node ${item.id}`);
+
         const loopNodes = loops.map(incomeId => {
             if (item.id === incomeId) {
                 return {
                     id: incomeId,
                     node: item,
-                    coords: [state.x, state.y],
+                    coords: [x, y],
                     isSelfLoop: true
                 };
             }
-            const coords = mtx.find(n => n.id === incomeId);
-            if (!coords) throw new Error(`Loop target '${incomeId}' not found on matrix`);
+
+            const coords = mtx.find(({ id }) => id === incomeId);
+            if (!coords) {
+                throw new Error(`Loop target '${incomeId}' not found on matrix`);
+            }
+
             const node = mtx.getByCoords(coords[0], coords[1]);
-            if (!node) throw new Error(`Loop target node'${incomeId}' not found on matrix`);
+            if (!node) {
+                throw new Error(`Loop target node'${incomeId}' not found on matrix`);
+            }
+
             return {
                 id: incomeId,
                 node,
                 coords
             };
         });
-        const skip = loopNodes.some(income => {
-            const { coords } = income;
-            return mtx.hasVerticalCollision([state.x, coords[1] ? coords[1] - 1 : 0]);
-        });
-        if (skip) return null;
+
+        const skip = loopNodes.some(({ coords }) => mtx
+            .hasVerticalCollision([x, coords[1] ? coords[1] - 1 : 0]));
+        if (skip) {
+            return null;
+        }
+
         return loopNodes;
     }
 
@@ -157,13 +167,22 @@ export class GraphMatrix<T> extends GraphStruct<T> {
     }
 
     private _insertLoopEdges(item: INodeOutput<T>, state: State<T>, loopNodes: LoopNode<T>[]): boolean {
-        const { mtx } = state;
-        const initialX = state.x;
-        let initialY = state.y;
-        loopNodes.forEach(income => {
-            const { id, coords, node } = income;
+        const { mtx, x: initialX } = state;
+        let { y: initialY } = state;
+        loopNodes.forEach(({ id, coords, node, isSelfLoop }) => {
             let renderIncomeId = item.id;
-            if (income.isSelfLoop) {
+            const insertItem = {
+                anchorType: AnchorType.Loop,
+                anchorFrom: item.id,
+                anchorTo: id,
+                isAnchor: true,
+                passedIncomes: [item.id],
+                payload: item.payload,
+                next: [id],
+                childrenOnMatrix: 0
+            };
+
+            if (isSelfLoop) {
                 state.y = initialY;
                 state.x = initialX + 1;
                 const selfLoopId = `${id}-self`;
@@ -171,16 +190,9 @@ export class GraphMatrix<T> extends GraphStruct<T> {
                 this._insertOrSkipNodeOnMatrix(
                     {
                         id: selfLoopId,
-                        anchorType: AnchorType.Loop,
-                        anchorMargin: AnchorMargin.Left,
-                        anchorFrom: item.id,
-                        anchorTo: id,
-                        isAnchor: true,
                         renderIncomes: [node.id],
-                        passedIncomes: [item.id],
-                        payload: item.payload,
-                        next: [id],
-                        childrenOnMatrix: 0
+                        anchorMargin: AnchorMargin.Left,
+                        ...insertItem,
                     },
                     state,
                     false
@@ -194,16 +206,9 @@ export class GraphMatrix<T> extends GraphStruct<T> {
             this._insertOrSkipNodeOnMatrix(
                 {
                     id: idTo,
-                    anchorType: AnchorType.Loop,
-                    anchorMargin: AnchorMargin.Left,
-                    anchorFrom: item.id,
-                    anchorTo: id,
-                    isAnchor: true,
                     renderIncomes: [renderIncomeId],
-                    passedIncomes: [item.id],
-                    payload: item.payload,
-                    next: [id],
-                    childrenOnMatrix: 0
+                    anchorMargin: AnchorMargin.Left,
+                    ...insertItem,
                 },
                 state,
                 true
@@ -213,16 +218,9 @@ export class GraphMatrix<T> extends GraphStruct<T> {
             this._insertOrSkipNodeOnMatrix(
                 {
                     id: fromId,
-                    anchorType: AnchorType.Loop,
-                    anchorMargin: AnchorMargin.Right,
-                    anchorFrom: item.id,
-                    anchorTo: id,
-                    isAnchor: true,
                     renderIncomes: [idTo],
-                    passedIncomes: [item.id],
-                    payload: item.payload,
-                    next: [id],
-                    childrenOnMatrix: 0
+                    anchorMargin: AnchorMargin.Right,
+                    ...insertItem,
                 },
                 state,
                 false

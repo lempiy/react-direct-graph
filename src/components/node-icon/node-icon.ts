@@ -1,4 +1,4 @@
-import { INodeInput } from "../core"
+import { INodeInput } from "../../core"
 
 export type GraphNodeIconComponentProps<T> = {
     node: INodeInput<T>

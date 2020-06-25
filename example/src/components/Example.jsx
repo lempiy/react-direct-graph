@@ -15,7 +15,7 @@ export class Example extends Component {
         });
     };
     render() {
-        const { example, title, code, description } = this.props;
+        const { children, title, code, description } = this.props;
         return (
             <section className="example">
                 <h2>{title}</h2>
@@ -39,7 +39,7 @@ export class Example extends Component {
                 <p>
                     <b>Output:</b>
                 </p>
-                <div className="graph-holder">{example}</div>
+                <div className="graph-holder">{children}</div>
             </section>
         );
     }
