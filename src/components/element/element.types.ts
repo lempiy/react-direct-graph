@@ -1,4 +1,5 @@
-import { IMatrixNode } from "../core";
+import { IMatrixNode } from "../../core";
+
 export type DataProps<T> = {
     node: IMatrixNode<T>;
     nodesMap: { [id: string]: IMatrixNode<T> };

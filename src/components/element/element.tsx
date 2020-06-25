@@ -1,8 +1,14 @@
 import * as React from "react";
-import { IMatrixNode } from "../core";
-import { GraphNodeIconComponentProps } from "./node-icon";
-import { DefaultNodeIcon } from "./node-icon-default";
-import { withForeignObject } from "./with-foreign-object";
+import { GraphNodeIconComponentProps, DefaultNodeIcon } from "../node-icon";
+import { withForeignObject } from "../with-foreign-object";
+import {
+    getSize,
+    getCoords,
+    getAllIncomes,
+    wrapEventHandler,
+    checkAnchorRenderIncomes
+} from "../../utils";
+import { IMatrixNode } from "../../core";
 import { GraphEventFunc, DataProps } from "./element.types";
 
 export type ViewProps<T> = {
@@ -17,57 +23,21 @@ export type ViewProps<T> = {
 export class GraphElement<T> extends React.Component<
     DataProps<T> & ViewProps<T>
 > {
-    getCoords(
-        cellSize: number,
-        padding: number,
-        node: IMatrixNode<T>
-    ): number[] {
-        return [node.x * cellSize + padding, node.y * cellSize + padding];
-    }
-
-    getSize(cellSize: number, padding: number): number {
-        return cellSize - padding * 2;
-    }
-
-    wrapEventHandler = (
-        cb: GraphEventFunc<T>,
-        node: IMatrixNode<T>,
-        incomes: IMatrixNode<T>[]
-    ): ((e: React.MouseEvent) => void) => {
-        return (e: React.MouseEvent) => cb(e, node, incomes);
-    };
-
     diveToNodeIncome = (
         node: IMatrixNode<T>,
         nodesMap: { [id: string]: IMatrixNode<T> }
     ): IMatrixNode<T> => {
         if (!node.isAnchor) return node;
-        this.checkAnchorRenderIncomes(node);
+        checkAnchorRenderIncomes<T>(node);
         return this.diveToNodeIncome(nodesMap[node.renderIncomes[0]], nodesMap);
     };
-
-    checkAnchorRenderIncomes(node: IMatrixNode<T>) {
-        if (node.renderIncomes.length != 1)
-            throw new Error(
-                `Anchor has non 1 income: ${
-                    node.id
-                }. Incomes ${node.renderIncomes.join(",")}`
-            );
-    }
 
     getNodeIncomes = (
         node: IMatrixNode<T>,
         nodesMap: { [id: string]: IMatrixNode<T> }
-    ): IMatrixNode<T>[] => {
-        return this.getAllIncomes(node, nodesMap).map(n =>
-            this.diveToNodeIncome(n, nodesMap)
-        );
-    };
-
-    getAllIncomes = (
-        node: IMatrixNode<T>,
-        nodesMap: { [id: string]: IMatrixNode<T> }
-    ): IMatrixNode<T>[] => node.renderIncomes.map(id => nodesMap[id]);
+    ): IMatrixNode<T>[] => getAllIncomes<T>(node, nodesMap).map(n =>
+        this.diveToNodeIncome(n, nodesMap)
+    );
 
     getNodeHandlers(): { [eventName: string]: (e: React.MouseEvent) => void } {
         const {
@@ -82,19 +52,19 @@ export class GraphElement<T> extends React.Component<
             [eventName: string]: (e: React.MouseEvent) => void;
         } = {};
         if (onNodeClick)
-            handlers.onClick = this.wrapEventHandler(
+            handlers.onClick = wrapEventHandler<T>(
                 onNodeClick,
                 node,
                 incomes
             );
         if (onNodeMouseEnter)
-            handlers.onMouseEnter = this.wrapEventHandler(
+            handlers.onMouseEnter = wrapEventHandler<T>(
                 onNodeMouseEnter,
                 node,
                 incomes
             );
         if (onNodeMouseLeave)
-            handlers.onMouseLeave = this.wrapEventHandler(
+            handlers.onMouseLeave = wrapEventHandler<T>(
                 onNodeMouseLeave,
                 node,
                 incomes
@@ -104,8 +74,8 @@ export class GraphElement<T> extends React.Component<
 
     renderNode() {
         const { node, node: { isAnchor, name, nameOrientation = "bottom" }, nodesMap, cellSize, padding } = this.props;
-        const [x, y] = this.getCoords(cellSize, padding, node);
-        const size = this.getSize(cellSize, padding);
+        const [x, y] = getCoords<T>(cellSize, padding, node);
+        const size = getSize(cellSize, padding);
         const NodeIcon = withForeignObject<GraphNodeIconComponentProps<T>>(
             this.props.component ? this.props.component : DefaultNodeIcon
         );

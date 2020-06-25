@@ -1,18 +1,15 @@
 import React, { Component } from "react";
 
-import { ExampleEvents } from ".";
+import { ExampleEvents } from "./";
 import { Example } from "../Example.jsx";
 
 /* eslint import/no-webpack-loader-syntax: off */
-const exampleEventsCode = require("!!raw-loader!./ExampleEvents.jsx");
+const { default: exampleEventsCode } = require("!!raw-loader!./ExampleEvents.jsx");
 
 const cellSize = 100;
 const padding = cellSize * 0.25;
 
 export class Events extends Component {
-    exampleComponent() {
-        return <ExampleEvents cellSize={cellSize} padding={padding} />;
-    }
     description = `<i>It's possible to handle mouse events on nodes and edges.<br>All event handlers recieve three arguments:</i><br>
         <br>
         <b>event</b> React synthetic event<br>
@@ -27,14 +24,16 @@ export class Events extends Component {
         <b>onNodeMouseLeave</b> - mouseleave on node<br>
         <b>onEdgeMouseEnter</b> - mouseenter on edge<br>
         <b>onEdgeMouseLeave</b> - mouseleave on edge<br>`;
+
     render() {
         return (
             <Example
-                code={exampleEventsCode.default}
-                example={this.exampleComponent()}
+                code={exampleEventsCode}
                 title={"Graph Events"}
                 description={this.description}
-            />
+            >
+                <ExampleEvents cellSize={cellSize} padding={padding} />
+            </Example>
         );
     }
 }

@@ -12,7 +12,6 @@ export declare type ViewProps<T> = {
 };
 export declare class GraphElement<T> extends React.Component<DataProps<T> & ViewProps<T>> {
     getCoords(cellSize: number, padding: number, node: IMatrixNode<T>): number[];
-    getSize(cellSize: number, padding: number): number;
     wrapEventHandler: (cb: GraphEventFunc<T>, node: IMatrixNode<T>, incomes: IMatrixNode<T>[]) => (e: React.MouseEvent<Element, MouseEvent>) => void;
     diveToNodeIncome: (node: IMatrixNode<T>, nodesMap: {
         [id: string]: IMatrixNode<T>;
