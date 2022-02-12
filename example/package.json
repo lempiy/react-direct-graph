@@ -5,7 +5,7 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
-        "ajv": "^6.10.0",
+        "ajv": "^6.12.3",
         "prop-types": "^15.6.2",
         "react": "^16.4.1",
         "react-direct-graph": "file:..",
