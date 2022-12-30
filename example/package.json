@@ -10,7 +10,7 @@
         "react": "^16.4.1",
         "react-direct-graph": "file:..",
         "react-dom": "^16.4.1",
-        "react-scripts": "^1.1.4",
+        "react-scripts": "^5.0.1",
         "react-syntax-highlighter": "^10.3.0"
     },
     "scripts": {
@@ -21,7 +21,7 @@
     },
     "devDependencies": {
         "@baristalabs/react-app-rewire-raw-loader": "^0.1.3",
-        "raw-loader": "^3.0.0",
+        "raw-loader": "^4.0.2",
         "react-app-rewired": "^2.1.3"
     }
 }
