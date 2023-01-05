@@ -10,7 +10,7 @@
         "react": "^16.4.1",
         "react-direct-graph": "file:..",
         "react-dom": "^16.4.1",
-        "react-scripts": "^1.1.4",
+        "react-scripts": "^5.0.1",
         "react-syntax-highlighter": "^10.3.0"
     },
     "scripts": {
